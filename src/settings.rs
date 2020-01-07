@@ -2,11 +2,10 @@ use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 pub struct Settings {
-
     /// IMAP hostname to connect to
     #[structopt(long, default_value = "imap.gmail.com", env = "IMAP_HOSTNAME")]
     pub hostname: String,
-   
+
     /// IMAP port number
     #[structopt(long, default_value = "993", env = "IMAP_PORT")]
     pub port: u16,
@@ -16,6 +15,6 @@ pub struct Settings {
     pub user: String,
 
     /// Password for authentication.
-    #[structopt(long, env = "IMAP_PASSWORD", hide_env_values=true)]
+    #[structopt(long, env = "IMAP_PASSWORD", hide_env_values = true)]
     pub password: String,
 }

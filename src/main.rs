@@ -56,9 +56,7 @@ fn complete(num_msgs: usize) -> ! {
 
 // Output the number of emails processed (usually 0)
 fn main() {
-
     let settings = Settings::from_args();
-
 
     match fetch(&settings) {
         Err(err) => stop(err),
@@ -74,11 +72,16 @@ fn main() {
 }
 
 fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
-
     let tls = native_tls::TlsConnector::builder().build()?;
-    let client = imap::connect((&settings.hostname[..], settings.port), &settings.hostname, &tls)?;
+    let client = imap::connect(
+        (&settings.hostname[..], settings.port),
+        &settings.hostname,
+        &tls,
+    )?;
 
-    let mut imap_session = client.login(&settings.user, &settings.password).map_err(|(err, _client)| err)?;
+    let mut imap_session = client
+        .login(&settings.user, &settings.password)
+        .map_err(|(err, _client)| err)?;
 
     imap_session.select("INBOX")?;
 
