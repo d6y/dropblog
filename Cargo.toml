@@ -1,0 +1,12 @@
+[package]
+name = "dropblog"
+version = "1.0.0"
+authors = ["Richard Dallaway <richard@dallaway.com>"]
+edition = "2018"
+
+[dependencies]
+imap = "1.0.2"
+native-tls = "0.2.3" 
+mailparse = "0.10.1"
+structopt = "0.3.7"
+
