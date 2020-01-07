@@ -45,7 +45,7 @@ fn describe(mail: &ParsedMail) {
 struct PostInfo {
     title: String,
     author: String,
-    content: String,
+    content: Option<String>,
     //date:
     //attachments:
     //content:
@@ -54,30 +54,45 @@ struct PostInfo {
 fn extract(mail: ParsedMail) -> Result<PostInfo, MailParseError> {
     describe(&mail);
 
-    let subject: Option<String> = mail.headers.get_first_value("Subject")?;
-
-    let sender_text: Option<String> = mail.headers.get_first_value("From")?;
-    // let sender = sender_text.map(|t| addrparse(&t).unwrap()).unwrap();
-
     let _date = mail.headers.get_first_value("Date").unwrap();
 
     // pub fn dateparse(date: &str) -> Result<i64, &'static str>
     // println!("{:?}\n{:?}\n{:?}", sender, subject, date);
     // describe(&result);
 
-    let title = subject.unwrap_or(String::from("untitled"));
-    let author = sender_text.unwrap_or(String::from("someone"));
+    let sender: Option<String> = sender(&mail)?;
+    let content: Option<String> = body(&mail)?;
+    let subject: Option<String> = mail.headers.get_first_value("Subject")?;
+
+    let title = subject
+        .or(content.clone())
+        .unwrap_or(String::from("Untitled"));
+    let author = sender.unwrap_or(String::from("Someone"));
 
     Ok(PostInfo {
-        title,
-        author,
-        content: body(&mail)?.unwrap_or(String::from("shrug")),
+        title: title.trim().to_owned(),
+        author: author.trim().to_owned(),
+        content: content.map(|str| str.trim().to_owned()),
     })
+}
+
+fn sender(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {
+    let sender_text: Option<String> = mail.headers.get_first_value("From")?;
+    match sender_text {
+        None => Ok(None),
+        Some(str) => match addrparse(&str) {
+            Err(err) => Err(MailParseError::Generic(&err)),
+            Ok(addrs) if addrs.is_empty() => Ok(None),
+            Ok(addrs) => Ok(addrs
+                .extract_single_info()
+                .and_then(|info| info.display_name)),
+        },
+    }
 }
 
 fn body(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {
     if mail.ctype.mimetype == "text/plain" {
-        mail.get_body().map(|s| Some(s))
+        mail.get_body().map(|str| Some(str))
     } else if mail.subparts.is_empty() {
         Ok(None)
     } else {
