@@ -68,36 +68,33 @@ fn extract(mail: ParsedMail) -> Result<PostInfo, MailParseError> {
     let title = subject.unwrap_or(String::from("untitled"));
     let author = sender_text.unwrap_or(String::from("someone"));
 
-    Ok(PostInfo { 
-        title, 
+    Ok(PostInfo {
+        title,
         author,
-        content: body(&mail)?.unwrap_or(String::from("shrug")), 
+        content: body(&mail)?.unwrap_or(String::from("shrug")),
     })
 }
 
 fn body(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {
-
     if mail.ctype.mimetype == "text/plain" {
         mail.get_body().map(|s| Some(s))
     } else if mail.subparts.is_empty() {
         Ok(None)
     } else {
-        let parts: Vec<Option<String>> =
-            mail.subparts.iter()
-            .map(|m| body(&m))
-            .filter_map(|result| result.ok())
+        let parts: Vec<Option<String>> = mail
+            .subparts
+            .iter()
+            .flat_map(|m| body(&m))
             .filter(|o| o.is_some())
             .collect();
-        
-            if parts.is_empty() {
-                Ok(None)
-            } else {
-                Ok(parts[0].clone())
-            }
+
+        if parts.is_empty() {
+            Ok(None)
+        } else {
+            Ok(parts[0].clone())
         }
-
+    }
 }
-
 
 fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
     let tls = native_tls::TlsConnector::builder().build()?;
