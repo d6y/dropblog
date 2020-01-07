@@ -81,17 +81,16 @@ fn body(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {
     } else if mail.subparts.is_empty() {
         Ok(None)
     } else {
-        let parts: Vec<Option<String>> = mail
-            .subparts
-            .iter()
-            .flat_map(|m| body(&m))
-            .filter(|o| o.is_some())
-            .collect();
+        let parts: Result<Vec<Option<String>>, MailParseError> =
+            mail.subparts.iter().map(|m| body(&m)).collect();
 
-        if parts.is_empty() {
-            Ok(None)
-        } else {
-            Ok(parts[0].clone())
+        let valid_parts: Result<Vec<String>, MailParseError> =
+            parts.map(|os| os.into_iter().flatten().collect());
+
+        match valid_parts {
+            Ok(vec) if vec.is_empty() => Ok(None),
+            Err(err) => Err(err),
+            Ok(vec) => Ok(Some(vec[0].clone())),
         }
     }
 }
