@@ -1,3 +1,4 @@
+use chrono::{DateTime, TimeZone, Utc};
 use imap;
 use mailparse::*;
 use native_tls;
@@ -10,10 +11,10 @@ fn main() {
     let settings = Settings::from_args();
 
     match fetch(&settings) {
-        Err(err) => stop(err),
-        Ok(None) => complete(0),
+        Err(err) => stop(err),   // Failed accessing mail box
+        Ok(None) => complete(0), // No messages to process
         Ok(Some(mime_message)) => match parse_mail(mime_message.as_bytes()).and_then(extract) {
-            Err(err) => stop(err),
+            Err(err) => stop(err), // Message processing failed
             Ok(info) => {
                 println!("{:?}", info);
                 complete(1)
@@ -46,23 +47,17 @@ struct PostInfo {
     title: String,
     author: String,
     content: Option<String>,
-    //date:
+    date: DateTime<Utc>,
     //attachments:
-    //content:
 }
 
 fn extract(mail: ParsedMail) -> Result<PostInfo, MailParseError> {
     describe(&mail);
 
-    let _date = mail.headers.get_first_value("Date").unwrap();
-
-    // pub fn dateparse(date: &str) -> Result<i64, &'static str>
-    // println!("{:?}\n{:?}\n{:?}", sender, subject, date);
-    // describe(&result);
-
     let sender: Option<String> = sender(&mail)?;
-    let content: Option<String> = body(&mail)?;
+    let date: Option<DateTime<Utc>> = date(&mail)?;
     let subject: Option<String> = mail.headers.get_first_value("Subject")?;
+    let content: Option<String> = body(&mail)?;
 
     let title = subject
         .or(content.clone())
@@ -73,7 +68,21 @@ fn extract(mail: ParsedMail) -> Result<PostInfo, MailParseError> {
         title: title.trim().to_owned(),
         author: author.trim().to_owned(),
         content: content.map(|str| str.trim().to_owned()),
+        date: date.unwrap_or(Utc::now()),
     })
+}
+
+fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, MailParseError> {
+    let date_header: Option<String> = mail.headers.get_first_value("Date")?;
+
+    let timestamp: Result<Vec<i64>, &str> = date_header.iter().map(|str| dateparse(&str)).collect();
+
+    let utc: Option<DateTime<Utc>> = timestamp
+        .map_err(|e| MailParseError::Generic(e))?
+        .first()
+        .map(|&ts| Utc.timestamp(ts, 0));
+
+    Ok(utc)
 }
 
 fn sender(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {

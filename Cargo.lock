@@ -123,8 +123,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "dropblog"
 version = "1.0.0"
 dependencies = [
+ "chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "imap 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "mailparse 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "mailparse 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "native-tls 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -218,7 +219,7 @@ dependencies = [
 
 [[package]]
 name = "mailparse"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "base64 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -630,7 +631,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 "checksum libc 0.2.66 (registry+https://github.com/rust-lang/crates.io-index)" = "d515b1f41455adea1313a4a2ac8a8a477634fbae63cc6100e3aebb207ce61558"
 "checksum log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)" = "14b6052be84e6b71ab17edffc2eeabf5c2c3ae1fdb464aae35ac50c67a44e1f7"
-"checksum mailparse 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)" = "c00eb97cc18f08aaadd02808328dcc9be94948d8e5b54adbfd3414d2f87f7bf1"
+"checksum mailparse 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)" = "04c64e94d3a5d02abe0cf459507689d70fb3b9b1d5fea5773a9f5273117959fb"
 "checksum memchr 2.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "88579771288728879b57485cc7d6b07d648c9f0141eb955f8ab7f9d45394468e"
 "checksum native-tls 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "4b2df1a4c22fd44a62147fd8f13dd0f95c9d8ca7b2610299b2a2f9cf8964274e"
 "checksum nom 4.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "2ad2a91a8e869eeb30b9cb3119ae87773a8f4ae617f41b1eb9c154b2905f7bd6"
