@@ -3,9 +3,13 @@ use imap;
 use mailparse::*;
 use native_tls;
 use structopt::StructOpt;
+use tempfile;
 
 mod settings;
 use settings::Settings;
+
+use std::fs::File;
+use std::io::Write;
 
 fn main() {
     let settings = Settings::from_args();
@@ -48,7 +52,13 @@ struct PostInfo {
     author: String,
     content: Option<String>,
     date: DateTime<Utc>,
-    //attachments:
+    attachments: Vec<Image>,
+}
+
+#[derive(Debug)]
+struct Image {
+    file: File,
+    mimetype: String,
 }
 
 fn extract(mail: ParsedMail) -> Result<PostInfo, MailParseError> {
@@ -59,7 +69,9 @@ fn extract(mail: ParsedMail) -> Result<PostInfo, MailParseError> {
     let subject: Option<String> = mail.headers.get_first_value("Subject")?;
     let content: Option<String> = body(&mail)?;
 
+    // The blog post title will be the subject line, and if that's missing use the body text
     let title = subject
+        .filter(|str| !str.is_empty())
         .or(content.clone())
         .unwrap_or(String::from("Untitled"));
     let author = sender.unwrap_or(String::from("Someone"));
@@ -69,6 +81,7 @@ fn extract(mail: ParsedMail) -> Result<PostInfo, MailParseError> {
         author: author.trim().to_owned(),
         content: content.map(|str| str.trim().to_owned()),
         date: date.unwrap_or(Utc::now()),
+        attachments: attachments(&mail)?,
     })
 }
 
@@ -80,7 +93,7 @@ fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, MailParseError> {
     let utc: Option<DateTime<Utc>> = timestamp
         .map_err(|e| MailParseError::Generic(e))?
         .first()
-        .map(|&ts| Utc.timestamp(ts, 0));
+        .map(|&seconds| Utc.timestamp_millis(1000 * seconds));
 
     Ok(utc)
 }
@@ -116,6 +129,33 @@ fn body(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {
             Err(err) => Err(err),
             Ok(vec) => Ok(Some(vec[0].clone())),
         }
+    }
+}
+
+fn save_raw_body(bytes: Vec<u8>) -> Result<File, std::io::Error> {
+    let mut file = tempfile::tempfile()?;
+    file.write(bytes.as_slice())?;
+    Ok(file)
+}
+
+fn attachments(mail: &ParsedMail) -> Result<Vec<Image>, MailParseError> {
+    if mail.ctype.mimetype.starts_with("image") {
+        let bytes = mail.get_body_raw()?;
+        save_raw_body(bytes)
+            .map(|file| {
+                vec![Image {
+                    file: file,
+                    mimetype: mail.ctype.mimetype.clone(),
+                }]
+            })
+            .map_err(|_err| MailParseError::Generic(&"Failed to save file"))
+    } else if mail.subparts.is_empty() {
+        Ok(Vec::new())
+    } else {
+        let sub_images: Result<Vec<Vec<Image>>, MailParseError> =
+            mail.subparts.iter().map(|m| attachments(&m)).collect();
+
+        sub_images.map(|vvi| vvi.into_iter().flatten().collect())
     }
 }
 
