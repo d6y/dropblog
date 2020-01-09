@@ -21,5 +21,24 @@ pub struct Image {
 }
 
 pub fn write(settings: &Settings, post: &PostInfo) -> Result<Vec<File>, Error> {
+    println!("{}", post_meta(&post));
+
     Ok(Vec::new())
+}
+
+fn post_meta(post: &PostInfo) -> String {
+    format!(
+        r#"
+---
+title: |
+    {}
+author: {}
+date: {}
+layout: post
+comments: true
+---"#,
+        post.title,
+        post.author,
+        post.date.format("%Y-%m-%d %H:%M")
+    )
 }
