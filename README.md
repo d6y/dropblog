@@ -9,7 +9,18 @@ Writes the images to disk, and creates a blog post markdown file.
 cargo run -- --help
 ```
 
-## Linux binary
+# Example
+
+```
+export MEDIA_DIR=/tmp/media
+export POSTS_DIR=/tmp/posts
+mkdir -p $MEDIA_DIR
+mkdir -p $POSTS_DIR
+
+IMAP_PASSWORD=trustno1 cargo run -- --user=hello@example.org
+```
+
+# Linux binary
 
 From MacOS:
 
