@@ -7,6 +7,9 @@ use settings::Settings;
 mod email;
 use email::{extract, fetch};
 
+mod blog;
+use blog::write;
+
 fn main() {
     let settings = Settings::from_args();
 
@@ -18,6 +21,7 @@ fn main() {
                 Err(err) => stop(err), // Message processing failed
                 Ok(info) => {
                     println!("{:?}", info);
+
                     complete(1)
                 }
             }

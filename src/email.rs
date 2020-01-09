@@ -6,6 +6,8 @@ use tempfile;
 
 use super::settings::Settings;
 
+use super::blog::{Image, PostInfo};
+
 use std::fs::File;
 use std::io::Write;
 
@@ -44,21 +46,6 @@ pub fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
     imap_session.logout()?;
 
     Ok(Some(body))
-}
-
-#[derive(Debug)]
-pub struct PostInfo {
-    title: String,
-    author: String,
-    content: Option<String>,
-    date: DateTime<Utc>,
-    attachments: Vec<Image>,
-}
-
-#[derive(Debug)]
-pub struct Image {
-    file: File,
-    mimetype: String,
 }
 
 pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailParseError> {
