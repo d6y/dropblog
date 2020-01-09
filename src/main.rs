@@ -13,13 +13,15 @@ fn main() {
     match fetch(&settings) {
         Err(err) => stop(err),   // Failed accessing mail box
         Ok(None) => complete(0), // No messages to process
-        Ok(Some(mime_message)) => match parse_mail(mime_message.as_bytes()).and_then(extract) {
-            Err(err) => stop(err), // Message processing failed
-            Ok(info) => {
-                println!("{:?}", info);
-                complete(1)
+        Ok(Some(mime_message)) => {
+            match parse_mail(mime_message.as_bytes()).and_then(|m| extract(&settings, m)) {
+                Err(err) => stop(err), // Message processing failed
+                Ok(info) => {
+                    println!("{:?}", info);
+                    complete(1)
+                }
             }
-        },
+        }
     }
 }
 

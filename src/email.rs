@@ -39,6 +39,7 @@ pub fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
         .to_string();
 
     // TODO: mark as archive and ex-purge
+    // via a setting perhaps -a or -e
 
     imap_session.logout()?;
 
@@ -60,8 +61,11 @@ pub struct Image {
     mimetype: String,
 }
 
-pub fn extract(mail: ParsedMail) -> Result<PostInfo, MailParseError> {
-    describe(&mail);
+pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailParseError> {
+    if settings.show_outline {
+        // Debug output to show the structure of the MIME message
+        outline(&mail);
+    }
 
     let sender: Option<String> = sender(&mail)?;
     let date: Option<DateTime<Utc>> = date(&mail)?;
@@ -82,15 +86,6 @@ pub fn extract(mail: ParsedMail) -> Result<PostInfo, MailParseError> {
         date: date.unwrap_or(Utc::now()),
         attachments: attachments(&mail)?,
     })
-}
-
-fn describe(mail: &ParsedMail) {
-    println!("Found: {:?}", &mail.ctype);
-    let parts = &mail.subparts;
-    println!("Parts: {}", parts.len());
-    for i in 0..parts.len() {
-        describe(&parts[i]);
-    }
 }
 
 fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, MailParseError> {
@@ -164,5 +159,22 @@ fn attachments(mail: &ParsedMail) -> Result<Vec<Image>, MailParseError> {
             mail.subparts.iter().map(|m| attachments(&m)).collect();
 
         sub_images.map(|vvi| vvi.into_iter().flatten().collect())
+    }
+}
+
+fn outline(mail: &ParsedMail) {
+    describe_child("+", &mail);
+}
+
+fn describe_child(prefix: &str, mail: &ParsedMail) {
+    println!(
+        "{} {:?} (children: {})",
+        &prefix,
+        &mail.ctype,
+        &mail.subparts.len()
+    );
+    let indent = String::from("--") + &prefix;
+    for child in mail.subparts.iter() {
+        describe_child(&indent, &child);
     }
 }

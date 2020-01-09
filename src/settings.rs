@@ -17,4 +17,8 @@ pub struct Settings {
     /// Password for authentication.
     #[structopt(long, env = "IMAP_PASSWORD", hide_env_values = true)]
     pub password: String,
+
+    /// Outline the structure of the email as additional output
+    #[structopt(long)]
+    pub show_outline: bool,
 }
