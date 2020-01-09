@@ -8,7 +8,6 @@ mod email;
 use email::{extract, fetch};
 
 mod blog;
-use blog::write;
 
 fn main() {
     let settings = Settings::from_args();
@@ -20,9 +19,13 @@ fn main() {
             match parse_mail(mime_message.as_bytes()).and_then(|m| extract(&settings, m)) {
                 Err(err) => stop(err), // Message processing failed
                 Ok(info) => {
-                    println!("{:?}", info);
-
-                    complete(1)
+                    match blog::write(&settings, &info) {
+                        Err(err) => stop(err),
+                        Ok(files) => {
+                            println!("{:?}", files);
+                            complete(1)
+                        }
+                    }
                 }
             }
         }

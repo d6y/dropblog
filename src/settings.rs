@@ -1,6 +1,8 @@
 use structopt::StructOpt;
+use std::path::PathBuf;
 
 #[derive(Debug, StructOpt)]
+#[structopt(global_settings(&[clap::AppSettings::DeriveDisplayOrder]))]
 pub struct Settings {
     /// IMAP hostname to connect to
     #[structopt(long, default_value = "imap.gmail.com", env = "IMAP_HOSTNAME")]
@@ -17,6 +19,14 @@ pub struct Settings {
     /// Password for authentication.
     #[structopt(long, env = "IMAP_PASSWORD", hide_env_values = true)]
     pub password: String,
+
+    /// Existing directory for writing blog posts markdown.
+    #[structopt(long, env = "POSTS_DIR")]
+    pub posts_dir: PathBuf,
+
+    /// Existing directory for writing media files.
+    #[structopt(long, env = "MEDIA_DIR")]
+    pub media_dir: PathBuf,
 
     /// Outline the structure of the email as additional output
     #[structopt(long)]
