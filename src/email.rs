@@ -55,9 +55,9 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
     }
 
     let sender: Option<String> = sender(&mail)?;
-    let date: Option<DateTime<Utc>> = date(&mail)?;
     let subject: Option<String> = mail.headers.get_first_value("Subject")?;
     let content: Option<String> = body(&mail)?;
+    let date: DateTime<Utc> = date(&mail)?.unwrap_or(Utc::now());
 
     // The blog post title will be the subject line, and if that's missing use the body text
     let title = subject
@@ -66,13 +66,18 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
         .unwrap_or(String::from("Untitled"));
     let author = sender.unwrap_or(String::from("Someone"));
 
-    Ok(PostInfo {
-        title: title.trim().to_owned(),
-        author: author.trim().to_owned(),
-        content: content.map(|str| str.trim().to_owned()),
-        date: date.unwrap_or(Utc::now()),
-        attachments: attachments(&mail)?,
-    })
+    let slug = slug::slugify(&title);
+
+    let attachments = attachments(&mail)?;
+
+    Ok(PostInfo::new(
+        slug,
+        title,
+        author,
+        content,
+        date,
+        attachments,
+    ))
 }
 
 fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, MailParseError> {
@@ -128,25 +133,32 @@ fn save_raw_body(bytes: Vec<u8>) -> Result<File, std::io::Error> {
     Ok(file)
 }
 
-fn attachments(mail: &ParsedMail) -> Result<Vec<Image>, MailParseError> {
-    if mail.ctype.mimetype.starts_with("image") {
-        let bytes = mail.get_body_raw()?;
-        save_raw_body(bytes)
-            .map(|file| {
-                vec![Image {
-                    file: file,
-                    mimetype: mail.ctype.mimetype.clone(),
-                }]
-            })
-            .map_err(|_err| MailParseError::Generic(&"Failed to save file"))
-    } else if mail.subparts.is_empty() {
-        Ok(Vec::new())
-    } else {
-        let sub_images: Result<Vec<Vec<Image>>, MailParseError> =
-            mail.subparts.iter().map(|m| attachments(&m)).collect();
+fn find_attachemnts<'a>(mail: &'a ParsedMail<'a>) -> Vec<&'a ParsedMail<'a>> {
+    let head: Vec<&ParsedMail> = vec![mail]
+        .into_iter()
+        .filter(|m| m.ctype.mimetype.starts_with("image"))
+        .collect();
 
-        sub_images.map(|vvi| vvi.into_iter().flatten().collect())
+    let tail = mail.subparts.iter().map(|m| find_attachemnts(m)).flatten();
+
+    head.into_iter().chain(tail).collect()
+}
+
+fn attachments(mail: &ParsedMail) -> Result<Vec<Image>, MailParseError> {
+    let mut images = Vec::new();
+
+    for (count, part) in find_attachemnts(&mail).iter().enumerate() {
+        let bytes = part.get_body_raw()?;
+        let file =
+            save_raw_body(bytes).map_err(|_err| MailParseError::Generic(&"Failed to save file"));
+
+        images.push(Image {
+            file: file?,
+            mimetype: mail.ctype.mimetype.clone(),
+        });
     }
+
+    Ok(images)
 }
 
 fn outline(mail: &ParsedMail) {
