@@ -28,6 +28,10 @@ pub struct Settings {
     #[structopt(long, env = "MEDIA_DIR")]
     pub media_dir: PathBuf,
 
+    /// Archive the email after processing
+    #[structopt(short, long)]
+    pub expunge: bool,
+
     /// Outline the structure of the email as additional output
     #[structopt(long)]
     pub show_outline: bool,

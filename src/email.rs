@@ -31,7 +31,9 @@ pub fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
 
     // fetch message number 1 in this mailbox, along with its RFC822 field.
     // RFC 822 dictates the format of the body of e-mails
-    let messages = imap_session.fetch("1", "RFC822")?;
+
+    let sequence_set = "1";
+    let messages = imap_session.fetch(sequence_set, "RFC822")?;
     let message = if let Some(m) = messages.iter().next() {
         m
     } else {
@@ -44,8 +46,10 @@ pub fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
         .expect("message was not valid utf-8")
         .to_string();
 
-    // TODO: mark as archive and ex-purge
-    // via a setting perhaps -a or -e
+    if settings.expunge {
+        imap_session.store(format!("{}", sequence_set), "+FLAGS (\\Seen \\Deleted)")?;
+        let _msg_sequence_numbers = imap_session.expunge()?;
+    }
 
     imap_session.logout()?;
 
