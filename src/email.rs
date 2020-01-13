@@ -8,8 +8,11 @@ use super::settings::Settings;
 
 use super::blog::{Image, PostInfo};
 
+use std::fs;
 use std::fs::File;
 use std::io::Write;
+use std::path::Path;
+use std::path::PathBuf;
 
 pub fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
     let tls = native_tls::TlsConnector::builder().build()?;
@@ -54,7 +57,7 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
         outline(&mail);
     }
 
-    let sender: Option<String> = sender(&mail)?;
+    let sender: String = sender(&mail)?.unwrap_or(String::from("Someone"));
     let subject: Option<String> = mail.headers.get_first_value("Subject")?;
     let content: Option<String> = body(&mail)?;
     let date: DateTime<Utc> = date(&mail)?.unwrap_or(Utc::now());
@@ -64,20 +67,35 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
         .filter(|str| !str.is_empty())
         .or(content.clone())
         .unwrap_or(String::from("Untitled"));
-    let author = sender.unwrap_or(String::from("Someone"));
 
     let slug = slug::slugify(&title);
 
-    let attachments = attachments(&mail)?;
+    let attachment_dir = mk_attachment_dir(&settings, &date)
+        .map_err(|_e| MailParseError::Generic("Failed to create media dir"));
+    let file_stem = format!("{}-{}", date.format("%Y-%m-%d"), &slug);
+    let attachments = attachments(&attachment_dir?, &file_stem, &mail)?;
 
     Ok(PostInfo::new(
         slug,
         title,
-        author,
+        sender,
         content,
         date,
         attachments,
     ))
+}
+
+fn mk_attachment_dir(settings: &Settings, date: &DateTime<Utc>) -> Result<PathBuf, std::io::Error> {
+    let mut attachment_path = settings.media_dir.clone();
+    attachment_path.push(date.format("%Y").to_string());
+
+    let meta = fs::metadata(&attachment_path);
+
+    if meta?.is_dir() {
+        fs::create_dir(&attachment_path)?;
+    }
+
+    Ok(attachment_path)
 }
 
 fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, MailParseError> {
@@ -133,18 +151,23 @@ fn save_raw_body(bytes: Vec<u8>) -> Result<File, std::io::Error> {
     Ok(file)
 }
 
+fn to_vec<T>(o: Option<T>) -> Vec<T> {
+    match o {
+        Some(v) => vec![v],
+        None => Vec::new(),
+    }
+}
+
 fn find_attachemnts<'a>(mail: &'a ParsedMail<'a>) -> Vec<&'a ParsedMail<'a>> {
-    let head: Vec<&ParsedMail> = vec![mail]
-        .into_iter()
-        .filter(|m| m.ctype.mimetype.starts_with("image"))
-        .collect();
+    let head: Vec<&ParsedMail> =
+        to_vec(Some(mail).filter(|m| m.ctype.mimetype.starts_with("image")));
 
     let tail = mail.subparts.iter().map(|m| find_attachemnts(m)).flatten();
 
     head.into_iter().chain(tail).collect()
 }
 
-fn attachments(mail: &ParsedMail) -> Result<Vec<Image>, MailParseError> {
+fn attachments(path: &Path, stem: &str, mail: &ParsedMail) -> Result<Vec<Image>, MailParseError> {
     let mut images = Vec::new();
 
     for (count, part) in find_attachemnts(&mail).iter().enumerate() {

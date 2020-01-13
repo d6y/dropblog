@@ -42,7 +42,7 @@ impl PostInfo {
 }
 
 pub fn write(settings: &Settings, post: &PostInfo) -> Result<Vec<File>, Error> {
-    println!("{}", post_meta(&post));
+    //println!("{}", post_meta(&post));
     println!("{:?}", &post);
 
     Ok(Vec::new())
