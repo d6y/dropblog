@@ -19,7 +19,7 @@ fn main() {
         Ok(Some(mime_message)) => {
             match parse_mail(mime_message.as_bytes()).and_then(|m| extract(&settings, m)) {
                 Err(err) => stop(err), // Message processing failed
-                Ok(info) => match blog::write(&settings, &info) {
+                Ok(info) => match blog::write(&info) {
                     Err(err) => stop(err),
                     Ok(files) => {
                         println!("{:?}", files);
