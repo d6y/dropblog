@@ -8,6 +8,7 @@ mod email;
 use email::{extract, fetch};
 
 mod blog;
+mod conventions;
 
 fn main() {
     let settings = Settings::from_args();

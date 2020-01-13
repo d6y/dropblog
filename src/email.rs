@@ -2,17 +2,18 @@ use chrono::{DateTime, TimeZone, Utc};
 use imap;
 use mailparse::*;
 use native_tls;
-use tempfile;
+
+use std::path::Path;
 
 use super::settings::Settings;
 
 use super::blog::{Image, PostInfo};
 
-use std::fs;
+use super::conventions;
+use conventions::FileConventions;
+
 use std::fs::File;
 use std::io::Write;
-use std::path::Path;
-use std::path::PathBuf;
 
 pub fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
     let tls = native_tls::TlsConnector::builder().build()?;
@@ -51,6 +52,11 @@ pub fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
     Ok(Some(body))
 }
 
+fn to_generic_error<E: std::fmt::Debug>(err: E) -> MailParseError {
+    eprintln!("Failed to create media dir: {:?}", err);
+    MailParseError::Generic("Failed to create media dir")
+}
+
 pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailParseError> {
     if settings.show_outline {
         // Debug output to show the structure of the MIME message
@@ -70,10 +76,10 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
 
     let slug = slug::slugify(&title);
 
-    let attachment_dir = mk_attachment_dir(&settings, &date)
-        .map_err(|_e| MailParseError::Generic("Failed to create media dir"));
-    let file_stem = format!("{}-{}", date.format("%Y-%m-%d"), &slug);
-    let attachments = attachments(&attachment_dir?, &file_stem, &mail)?;
+    let conventions =
+        FileConventions::new(&settings.media_dir, &date, &slug).map_err(to_generic_error)?;
+
+    let attachments = attachments(&conventions, &mail)?;
 
     Ok(PostInfo::new(
         slug,
@@ -83,19 +89,6 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
         date,
         attachments,
     ))
-}
-
-fn mk_attachment_dir(settings: &Settings, date: &DateTime<Utc>) -> Result<PathBuf, std::io::Error> {
-    let mut attachment_path = settings.media_dir.clone();
-    attachment_path.push(date.format("%Y").to_string());
-
-    let meta = fs::metadata(&attachment_path);
-
-    if meta?.is_dir() {
-        fs::create_dir(&attachment_path)?;
-    }
-
-    Ok(attachment_path)
 }
 
 fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, MailParseError> {
@@ -145,12 +138,6 @@ fn body(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {
     }
 }
 
-fn save_raw_body(bytes: Vec<u8>) -> Result<File, std::io::Error> {
-    let mut file = tempfile::tempfile()?;
-    file.write(bytes.as_slice())?;
-    Ok(file)
-}
-
 fn to_vec<T>(o: Option<T>) -> Vec<T> {
     match o {
         Some(v) => vec![v],
@@ -167,13 +154,17 @@ fn find_attachemnts<'a>(mail: &'a ParsedMail<'a>) -> Vec<&'a ParsedMail<'a>> {
     head.into_iter().chain(tail).collect()
 }
 
-fn attachments(path: &Path, stem: &str, mail: &ParsedMail) -> Result<Vec<Image>, MailParseError> {
+fn attachments(
+    conventions: &FileConventions,
+    mail: &ParsedMail,
+) -> Result<Vec<Image>, MailParseError> {
     let mut images = Vec::new();
 
     for (count, part) in find_attachemnts(&mail).iter().enumerate() {
+        let filename = conventions.attachment_path(count);
         let bytes = part.get_body_raw()?;
-        let file =
-            save_raw_body(bytes).map_err(|_err| MailParseError::Generic(&"Failed to save file"));
+        let file = save_raw_body(&filename, bytes)
+            .map_err(|_err| MailParseError::Generic(&"Failed to save file"));
 
         images.push(Image {
             file: file?,
@@ -182,6 +173,12 @@ fn attachments(path: &Path, stem: &str, mail: &ParsedMail) -> Result<Vec<Image>,
     }
 
     Ok(images)
+}
+
+fn save_raw_body(filename: &Path, bytes: Vec<u8>) -> Result<File, std::io::Error> {
+    let mut file = File::create(filename)?;
+    file.write(bytes.as_slice())?;
+    Ok(file)
 }
 
 fn outline(mail: &ParsedMail) {
