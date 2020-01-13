@@ -18,6 +18,7 @@ pub struct PostInfo {
 #[derive(Debug)]
 pub struct Image {
     pub file: File,
+    pub relative_url: String,
     pub mimetype: String,
 }
 

@@ -168,6 +168,7 @@ fn attachments(
 
         images.push(Image {
             file: file?,
+            relative_url: conventions.attachment_url(count),
             mimetype: mail.ctype.mimetype.clone(),
         });
     }
