@@ -20,6 +20,10 @@ pub struct Settings {
     #[structopt(long, env = "IMAP_PASSWORD", hide_env_values = true)]
     pub password: String,
 
+    /// Dropbox access token
+    #[structopt(long, env, hide_env_values = true)]
+    pub dropbox_access_token: String,
+
     /// Existing directory for writing blog posts markdown
     #[structopt(long, env = "POSTS_DIR")]
     pub posts_dir: PathBuf,

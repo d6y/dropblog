@@ -179,14 +179,14 @@ fn attachments(
 
         let thumbnail = Thumbnail {
             file: thumb_filename,
-            relative_url: conventions.attachment_thumb_url(count),
+            relative_path: conventions.attachment_thumb_url(count),
             width,
             height,
         };
 
         images.push(Image {
             file: filename,
-            relative_url: conventions.attachment_url(count),
+            relative_path: conventions.attachment_url(count),
             thumbnail,
             mimetype: mail.ctype.mimetype.clone(),
         });

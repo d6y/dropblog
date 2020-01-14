@@ -18,7 +18,7 @@ pub struct PostInfo {
 #[derive(Debug)]
 pub struct Image {
     pub file: PathBuf,
-    pub relative_url: String,
+    pub relative_path: String,
     pub mimetype: String,
     pub thumbnail: Thumbnail,
 }
@@ -26,7 +26,7 @@ pub struct Image {
 #[derive(Debug)]
 pub struct Thumbnail {
     pub file: PathBuf,
-    pub relative_url: String,
+    pub relative_path: String,
     pub width: u16,
     pub height: u16,
 }
@@ -53,9 +53,7 @@ impl PostInfo {
     }
 }
 
-pub fn write(post: &PostInfo) -> Result<Vec<File>, Error> {
-    println!("{:?}", &post);
-
+pub fn write(post: &PostInfo) -> Result<&PostInfo, Error> {
     let markdown = File::create(&post.filename)?;
     write!(&markdown, "{}", post_meta(&post))?;
     write!(&markdown, "\n\n")?;
@@ -69,15 +67,15 @@ pub fn write(post: &PostInfo) -> Result<Vec<File>, Error> {
         write!(
             &markdown,
             r#"<a href="{}"><img src="{}" width="{}" height="{}"></a>"#,
-            image.relative_url,
-            image.thumbnail.relative_url,
+            image.relative_path,
+            image.thumbnail.relative_path,
             image.thumbnail.width,
             image.thumbnail.height
         )?;
         write!(&markdown, "\n\n")?;
     }
 
-    Ok(Vec::new())
+    Ok(post)
 }
 
 fn post_meta(post: &PostInfo) -> String {

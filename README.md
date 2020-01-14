@@ -23,8 +23,10 @@ IMAP_PASSWORD=trustno1 cargo run -- --user=hello@example.org
 # Dependencies
 
 [Imagemagik]: https://imagemagick.org/
+[Dropbox access token]: https://blogs.dropbox.com/developers/2014/05/generate-an-access-token-for-your-own-account/
 
-- You need `convert` and `identify` from [Imagemagik] on your path
+- You need `convert` and `identify` from [Imagemagik] on your path.
+- You'll want a [Dropbox access token].
 
 # Linux binary
 

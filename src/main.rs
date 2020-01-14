@@ -4,28 +4,27 @@ use structopt::StructOpt;
 mod settings;
 use settings::Settings;
 
-mod email;
-use email::{extract, fetch};
-
 mod blog;
 mod conventions;
+mod dropbox;
+mod email;
 mod image;
 
 fn main() {
     let settings = Settings::from_args();
 
-    match fetch(&settings) {
+    let extract = |msg| email::extract(&settings, msg);
+    let upload = |post| dropbox::upload(&settings, post);
+
+    match email::fetch(&settings) {
         Err(err) => stop(err),   // Failed accessing mail box
         Ok(None) => complete(0), // No messages to process
         Ok(Some(mime_message)) => {
-            match parse_mail(mime_message.as_bytes()).and_then(|m| extract(&settings, m)) {
+            match parse_mail(mime_message.as_bytes()).and_then(extract) {
                 Err(err) => stop(err), // Message processing failed
-                Ok(info) => match blog::write(&info) {
+                Ok(info) => match blog::write(&info).and_then(upload) {
                     Err(err) => stop(err),
-                    Ok(files) => {
-                        println!("{:?}", files);
-                        complete(1)
-                    }
+                    Ok(_) => complete(1),
                 },
             }
         }
