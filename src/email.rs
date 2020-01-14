@@ -3,17 +3,18 @@ use imap;
 use mailparse::*;
 use native_tls;
 
+use std::fs::File;
+use std::io::Write;
 use std::path::Path;
 
 use super::settings::Settings;
 
-use super::blog::{Image, PostInfo};
+use super::blog::{Image, PostInfo, Thumbnail};
 
 use super::conventions;
 use conventions::FileConventions;
 
-use std::fs::File;
-use std::io::Write;
+use super::image::thumbnail;
 
 pub fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
     let tls = native_tls::TlsConnector::builder().build()?;
@@ -83,7 +84,7 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
     let conventions = FileConventions::new(&settings.media_dir, &settings.posts_dir, &date, &slug)
         .map_err(to_generic_error)?;
 
-    let attachments = attachments(&conventions, &mail)?;
+    let attachments = attachments(&conventions, settings.width, &mail)?;
 
     Ok(PostInfo::new(
         slug,
@@ -92,7 +93,7 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
         content,
         date,
         attachments,
-        conventions,
+        conventions.post_filename(),
     ))
 }
 
@@ -161,6 +162,7 @@ fn find_attachemnts<'a>(mail: &'a ParsedMail<'a>) -> Vec<&'a ParsedMail<'a>> {
 
 fn attachments(
     conventions: &FileConventions,
+    width: u16,
     mail: &ParsedMail,
 ) -> Result<Vec<Image>, MailParseError> {
     let mut images = Vec::new();
@@ -168,12 +170,24 @@ fn attachments(
     for (count, part) in find_attachemnts(&mail).iter().enumerate() {
         let filename = conventions.attachment_path(count);
         let bytes = part.get_body_raw()?;
-        let file = save_raw_body(&filename, bytes)
-            .map_err(|_err| MailParseError::Generic(&"Failed to save file"));
+        let _file = save_raw_body(&filename, bytes)
+            .map_err(|_err| MailParseError::Generic(&"Failed to save file"))?;
+
+        let thumb_filename = conventions.attachment_thumb_path(count);
+        let (width, height) = thumbnail(&filename, &thumb_filename, width)
+            .map_err(|_err| MailParseError::Generic(&"Failed to save thumbnail"))?;
+
+        let thumbnail = Thumbnail {
+            file: thumb_filename,
+            relative_url: conventions.attachment_thumb_url(count),
+            width,
+            height,
+        };
 
         images.push(Image {
-            file: file?,
+            file: filename,
             relative_url: conventions.attachment_url(count),
+            thumbnail,
             mimetype: mail.ctype.mimetype.clone(),
         });
     }

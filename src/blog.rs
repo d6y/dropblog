@@ -2,8 +2,7 @@ use chrono::{DateTime, Utc};
 use std::fs::File;
 use std::io::Error;
 use std::io::Write;
-
-use super::conventions::FileConventions;
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub struct PostInfo {
@@ -13,14 +12,23 @@ pub struct PostInfo {
     pub content: Option<String>,
     pub date: DateTime<Utc>,
     pub attachments: Vec<Image>,
-    pub conventions: FileConventions,
+    pub filename: PathBuf,
 }
 
 #[derive(Debug)]
 pub struct Image {
-    pub file: File,
+    pub file: PathBuf,
     pub relative_url: String,
     pub mimetype: String,
+    pub thumbnail: Thumbnail,
+}
+
+#[derive(Debug)]
+pub struct Thumbnail {
+    pub file: PathBuf,
+    pub relative_url: String,
+    pub width: u16,
+    pub height: u16,
 }
 
 impl PostInfo {
@@ -31,7 +39,7 @@ impl PostInfo {
         content: Option<String>,
         date: DateTime<Utc>,
         attachments: Vec<Image>,
-        conventions: FileConventions,
+        filename: PathBuf,
     ) -> PostInfo {
         PostInfo {
             slug,
@@ -40,7 +48,7 @@ impl PostInfo {
             content: content.map(|str| str.trim().to_owned()),
             date,
             attachments,
-            conventions,
+            filename,
         }
     }
 }
@@ -48,7 +56,7 @@ impl PostInfo {
 pub fn write(post: &PostInfo) -> Result<Vec<File>, Error> {
     println!("{:?}", &post);
 
-    let markdown = File::create(post.conventions.post_filename())?;
+    let markdown = File::create(&post.filename)?;
     write!(&markdown, "{}", post_meta(&post))?;
     write!(&markdown, "\n\n")?;
 
@@ -58,7 +66,15 @@ pub fn write(post: &PostInfo) -> Result<Vec<File>, Error> {
     };
 
     for image in post.attachments.iter() {
-        write!(&markdown, "![image]({})\n\n", image.relative_url)?;
+        write!(
+            &markdown,
+            r#"<a href="{}"><img src="{}" width="{}" height="{}"></a>"#,
+            image.relative_url,
+            image.thumbnail.relative_url,
+            image.thumbnail.width,
+            image.thumbnail.height
+        )?;
+        write!(&markdown, "\n\n")?;
     }
 
     Ok(Vec::new())

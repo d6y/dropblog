@@ -45,8 +45,8 @@ impl FileConventions {
         })
     }
 
-    pub fn post_filename(&self) -> &PathBuf {
-        &self.post_filename
+    pub fn post_filename(&self) -> PathBuf {
+        self.post_filename.clone()
     }
 
     // TODO: take mime type for file extension
@@ -58,5 +58,19 @@ impl FileConventions {
 
     pub fn attachment_url(&self, count: usize) -> String {
         format!("{}/{}-{}.{}", &self.post_media_url, self.stem, count, "jpg")
+    }
+
+    // TODO: take mime type for file extension
+    pub fn attachment_thumb_path(&self, count: usize) -> PathBuf {
+        let mut image_file = self.post_media_dir.clone();
+        image_file.push(format!("{}-{}-thumb.{}", self.stem, count, "jpg"));
+        image_file
+    }
+
+    pub fn attachment_thumb_url(&self, count: usize) -> String {
+        format!(
+            "{}/{}-{}-thumb.{}",
+            &self.post_media_url, self.stem, count, "jpg"
+        )
     }
 }

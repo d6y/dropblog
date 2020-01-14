@@ -20,6 +20,12 @@ mkdir -p $POSTS_DIR
 IMAP_PASSWORD=trustno1 cargo run -- --user=hello@example.org
 ```
 
+# Dependencies
+
+[Imagemagik]: https://imagemagick.org/
+
+- You need `convert` and `identify` from [Imagemagik] on your path
+
 # Linux binary
 
 From MacOS:
