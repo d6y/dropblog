@@ -31,7 +31,7 @@ impl FileConventions {
         }
 
         // Corresponding URL:
-        let post_media_url = format!("/media/{}", &year);
+        let post_media_url = format!("{}/{}", &media_path, &year);
 
         // All filenames will start with this pattern:
         let stem = format!("{}-{}", date.format("%Y-%m-%d"), slug);
