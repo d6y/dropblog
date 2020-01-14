@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
 use std::fs::File;
-use std::io::Error;
 use std::io::Write;
 use std::path::PathBuf;
 
@@ -12,6 +11,7 @@ pub struct PostInfo {
     pub content: Option<String>,
     pub date: DateTime<Utc>,
     pub attachments: Vec<Image>,
+    pub relative_path: String,
     pub filename: PathBuf,
 }
 
@@ -39,6 +39,7 @@ impl PostInfo {
         content: Option<String>,
         date: DateTime<Utc>,
         attachments: Vec<Image>,
+        relative_path: String,
         filename: PathBuf,
     ) -> PostInfo {
         PostInfo {
@@ -48,12 +49,13 @@ impl PostInfo {
             content: content.map(|str| str.trim().to_owned()),
             date,
             attachments,
+            relative_path,
             filename,
         }
     }
 }
 
-pub fn write(post: &PostInfo) -> Result<&PostInfo, Error> {
+pub fn write(post: &PostInfo) -> Result<&PostInfo, Box<dyn std::error::Error>> {
     let markdown = File::create(&post.filename)?;
     write!(&markdown, "{}", post_meta(&post))?;
     write!(&markdown, "\n\n")?;

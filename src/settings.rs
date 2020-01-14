@@ -24,13 +24,21 @@ pub struct Settings {
     #[structopt(long, env, hide_env_values = true)]
     pub dropbox_access_token: String,
 
-    /// Existing directory for writing blog posts markdown
-    #[structopt(long, env = "POSTS_DIR")]
-    pub posts_dir: PathBuf,
+    /// Upload files and directories to this path inside Dropbox account
+    #[structopt(long, env, default_value = "/")]
+    pub dropbox_root: String,
 
-    /// Existing directory for writing media files
-    #[structopt(long, env = "MEDIA_DIR")]
-    pub media_dir: PathBuf,
+    /// Existing directory for writing content
+    #[structopt(long, env = "OUT_DIR")]
+    pub out_dir: PathBuf,
+
+    /// Path into media relative to OUT_DIR
+    #[structopt(long, env = "MEDIA_PATH")]
+    pub media_path: String,
+
+    /// Path into posts relative to OUT_DIR
+    #[structopt(long, env = "POSTS_PATH")]
+    pub posts_path: String,
 
     /// Thumbnail width
     #[structopt(short, long, default_value = "500")]

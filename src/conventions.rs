@@ -8,18 +8,21 @@ pub struct FileConventions {
     post_media_dir: PathBuf,
     post_media_url: String,
     stem: String,
+    post_path: String,
     post_filename: PathBuf,
 }
 
 impl FileConventions {
     pub fn new(
-        media_root: &PathBuf,
-        post_root: &PathBuf,
+        output_dir: &PathBuf,
+        media_path: &String,
+        posts_path: &String,
         date: &DateTime<Utc>,
         slug: &str,
     ) -> Result<FileConventions, Error> {
         // Media (i.e., images) will be in seperate yearly subdirectories:
-        let mut post_media_dir = media_root.clone();
+        let mut post_media_dir = output_dir.clone();
+        post_media_dir.push(&media_path);
         let year = date.format("%Y").to_string();
         post_media_dir.push(&year);
 
@@ -34,19 +37,27 @@ impl FileConventions {
         let stem = format!("{}-{}", date.format("%Y-%m-%d"), slug);
 
         // The blog post is a single filename:
-        let mut post_filename = post_root.clone();
+        let mut post_filename = output_dir.clone();
+        post_filename.push(&posts_path);
         post_filename.push(format!("{}.md", stem));
+
+        let post_path = format!("{}/{}.md", &posts_path, stem);
 
         Ok(FileConventions {
             post_media_dir,
             post_media_url,
             stem,
+            post_path,
             post_filename,
         })
     }
 
     pub fn post_filename(&self) -> PathBuf {
         self.post_filename.clone()
+    }
+
+    pub fn post_path(&self) -> String {
+        self.post_path.clone()
     }
 
     // TODO: take mime type for file extension

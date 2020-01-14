@@ -81,8 +81,14 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
 
     let slug = slug::slugify(&title);
 
-    let conventions = FileConventions::new(&settings.media_dir, &settings.posts_dir, &date, &slug)
-        .map_err(to_generic_error)?;
+    let conventions = FileConventions::new(
+        &settings.out_dir,
+        &settings.media_path,
+        &settings.posts_path,
+        &date,
+        &slug,
+    )
+    .map_err(to_generic_error)?;
 
     let attachments = attachments(&conventions, settings.width, &mail)?;
 
@@ -93,6 +99,7 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
         content,
         date,
         attachments,
+        conventions.post_path(),
         conventions.post_filename(),
     ))
 }
