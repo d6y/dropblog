@@ -32,8 +32,8 @@ fn main() {
     }
 }
 
-fn stop<E: std::fmt::Debug>(err: E) -> ! {
-    eprintln!("{:?}", err);
+fn stop<E: std::fmt::Display>(err: E) -> ! {
+    eprintln!("{}", err);
     std::process::exit(1)
 }
 

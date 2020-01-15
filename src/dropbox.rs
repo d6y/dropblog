@@ -40,14 +40,20 @@ impl Dropbox {
     fn upload(&self, filename: &PathBuf, dropbox_path: &String) -> Result<(), Box<dyn Error>> {
         let file = File::open(filename)?;
 
-        let api_args = format!("{{\"path\":\"{}{}\"}}", "/", dropbox_path);
+        // E.g. { "path": "/media/2020/foo.jpg" }
+        let slash = if dropbox_path.starts_with("/") {
+            ""
+        } else {
+            "/"
+        };
+        let api_args = format!("{{\"path\":\"{}{}\"}}",slash, dropbox_path);
 
         let request = self
             .client
             .post("https://content.dropboxapi.com/2/files/upload")
             .bearer_auth(&self.token)
             .header("Content-Type", "application/octet-stream")
-            .header("Dropbox-API-Arg", api_args)
+            .header("Dropbox-API-Arg", &api_args)
             .body(file);
 
         let resp = request.send()?;
@@ -55,7 +61,7 @@ impl Dropbox {
             reqwest::StatusCode::OK => Ok(()),
             code => Err(Box::new(io::Error::new(
                 io::ErrorKind::Other,
-                format!("Expected 200, not {}. {:?}", code, resp),
+                format!("Expected 200, not {} (api args: {})", code, &api_args),
             ))),
         }
     }
