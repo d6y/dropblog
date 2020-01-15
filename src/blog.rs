@@ -82,8 +82,7 @@ pub fn write(post: &PostInfo) -> Result<&PostInfo, Box<dyn std::error::Error>> {
 
 fn post_meta(post: &PostInfo) -> String {
     format!(
-        r#"
----
+        r#"---
 title: |
     {}
 author: {}
