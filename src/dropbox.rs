@@ -7,7 +7,6 @@ use std::io;
 use std::path::PathBuf;
 
 pub fn upload(settings: &Settings, post: &PostInfo) -> Result<(), Box<dyn Error>> {
-    // TODO: Async
     let dropbox = Dropbox::new(&settings.dropbox_access_token);
     let _blog_response = dbg!(dropbox.upload(&post.filename, &post.relative_path)?);
 
