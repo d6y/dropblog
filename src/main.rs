@@ -9,6 +9,7 @@ mod conventions;
 mod dropbox;
 mod email;
 mod image;
+mod signatureblock;
 
 fn main() {
     let settings = Settings::from_args();

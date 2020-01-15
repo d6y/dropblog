@@ -7,9 +7,9 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
-use super::settings::Settings;
-
 use super::blog::{Image, PostInfo, Thumbnail};
+use super::settings::Settings;
+use super::signatureblock;
 
 use super::conventions;
 use conventions::FileConventions;
@@ -70,7 +70,7 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
 
     let sender: String = sender(&mail)?.unwrap_or(String::from("Someone"));
     let subject: Option<String> = mail.headers.get_first_value("Subject")?;
-    let content: Option<String> = body(&mail)?;
+    let content: Option<String> = body(&mail)?.map(signatureblock::remove);
     let date: DateTime<Utc> = date(&mail)?.unwrap_or(Utc::now());
 
     // The blog post title will be the subject line, and if that's missing use the body text
