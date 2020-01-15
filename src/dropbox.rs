@@ -9,16 +9,13 @@ use std::path::PathBuf;
 pub fn upload(settings: &Settings, post: &PostInfo) -> Result<(), Box<dyn Error>> {
     // TODO: Async
     let dropbox = Dropbox::new(&settings.dropbox_access_token);
-    let blog_response = dropbox.upload(&post.filename, &post.relative_path)?;
-    dbg!(blog_response);
+    let _blog_response = dbg!(dropbox.upload(&post.filename, &post.relative_path)?);
 
     for image in post.attachments.iter() {
-        let img_resp = dropbox.upload(&image.file, &image.relative_path)?;
-        dbg!(img_resp);
+        let _img_resp = dbg!(dropbox.upload(&image.file, &image.relative_path)?);
 
         let thumb = &image.thumbnail;
-        let thumb_resp = dropbox.upload(&thumb.file, &thumb.relative_path)?;
-        dbg!(thumb_resp);
+        let _thumb_resp = dbg!(dropbox.upload(&thumb.file, &thumb.relative_path)?);
     }
 
     Ok(())
@@ -46,7 +43,7 @@ impl Dropbox {
         } else {
             "/"
         };
-        let api_args = format!("{{\"path\":\"{}{}\"}}",slash, dropbox_path);
+        let api_args = dbg!(format!("{{\"path\":\"{}{}\"}}",slash, dropbox_path));
 
         let request = self
             .client
