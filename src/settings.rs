@@ -24,10 +24,6 @@ pub struct Settings {
     #[structopt(long, env, hide_env_values = true)]
     pub dropbox_access_token: String,
 
-    /// Upload files and directories to this path inside Dropbox account
-    #[structopt(long, env, default_value = "/")]
-    pub dropbox_root: String,
-
     /// Existing directory for writing content
     #[structopt(long, env = "OUT_DIR")]
     pub out_dir: PathBuf,

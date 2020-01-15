@@ -26,7 +26,7 @@ IMAP_PASSWORD=trustno1 cargo run -- --user=hello@example.org
 [Dropbox access token]: https://blogs.dropbox.com/developers/2014/05/generate-an-access-token-for-your-own-account/
 
 - You need `convert` and `identify` from [Imagemagik] on your path.
-- You'll want a [Dropbox access token].
+- You'll want a [Dropbox access token], and specifically an API token for an App Folder.
 
 # Linux binary
 
