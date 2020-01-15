@@ -10,7 +10,7 @@ pub fn upload(settings: &Settings, post: &PostInfo) -> Result<(), Box<dyn Error>
 
     let auth = format!("Bearer {}", &settings.dropbox_access_token);
 
-    let api_args = format!( "{{\"path\":\"{}{}\"}}", "/", post.relative_path);
+    let api_args = format!("{{\"path\":\"{}{}\"}}", "/", post.relative_path);
 
     let request = reqwest::blocking::Client::new()
         .post(api)
