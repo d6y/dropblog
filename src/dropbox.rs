@@ -7,6 +7,7 @@ use std::io;
 use std::path::PathBuf;
 
 pub fn upload(settings: &Settings, post: &PostInfo) -> Result<(), Box<dyn Error>> {
+    // TODO: Async
     let dropbox = Dropbox::new(&settings.dropbox_access_token);
     let blog_response = dropbox.upload(&post.filename, &post.relative_path)?;
     dbg!(blog_response);
@@ -24,13 +25,16 @@ pub fn upload(settings: &Settings, post: &PostInfo) -> Result<(), Box<dyn Error>
 }
 
 struct Dropbox {
-    auth_header: String,
+    token: String,
+    client: reqwest::blocking::Client,
 }
 
 impl Dropbox {
     fn new(token: &String) -> Dropbox {
-        let auth_header = format!("Bearer {}", token);
-        Dropbox { auth_header }
+        Dropbox {
+            token: token.clone(),
+            client: reqwest::blocking::Client::new(),
+        }
     }
 
     fn upload(&self, filename: &PathBuf, dropbox_path: &String) -> Result<(), Box<dyn Error>> {
@@ -38,10 +42,11 @@ impl Dropbox {
 
         let api_args = format!("{{\"path\":\"{}{}\"}}", "/", dropbox_path);
 
-        let request = reqwest::blocking::Client::new()
+        let request = self
+            .client
             .post("https://content.dropboxapi.com/2/files/upload")
+            .bearer_auth(&self.token)
             .header("Content-Type", "application/octet-stream")
-            .header("Authorization", &self.auth_header)
             .header("Dropbox-API-Arg", api_args)
             .body(file);
 
