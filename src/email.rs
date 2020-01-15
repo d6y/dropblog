@@ -175,7 +175,7 @@ fn attachments(
     let mut images = Vec::new();
 
     for (count, part) in find_attachemnts(&mail).iter().enumerate() {
-        let filename = conventions.attachment_path(count);
+        let filename = conventions.attachment_filename(count);
         let bytes = part.get_body_raw()?;
         let _file = save_raw_body(&filename, bytes)
             .map_err(|_err| MailParseError::Generic(&"Failed to save file"))?;
