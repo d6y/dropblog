@@ -17,8 +17,6 @@ fn main() {
     let extract = |msg| email::extract(&settings, msg);
     let upload = |post| dropbox::upload(&settings, post);
 
-    //TODO: Remove temporary files unless --retain-files
-
     match email::fetch(&settings) {
         Err(err) => stop(err),   // Failed accessing mail box
         Ok(None) => complete(0), // No messages to process
