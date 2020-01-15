@@ -55,7 +55,7 @@ impl Dropbox {
             reqwest::StatusCode::OK => Ok(()),
             code => Err(Box::new(io::Error::new(
                 io::ErrorKind::Other,
-                format!("Expected 200, not {}", code),
+                format!("Expected 200, not {}. {:?}", code, resp),
             ))),
         }
     }
