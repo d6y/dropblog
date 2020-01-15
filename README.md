@@ -34,7 +34,7 @@ From MacOS:
 
 ```
 docker pull clux/muslrust
-docker run -v $PWD:/volume -t clux/muslrust cargo build --release
+docker run -v $PWD:/volume -i -t clux/muslrust cargo build --release
 ```
 
 The binary will be:
