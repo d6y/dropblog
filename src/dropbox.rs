@@ -42,7 +42,7 @@ impl Dropbox {
         } else {
             "/"
         };
-        let api_args = dbg!(format!("{{\"path\":\"{}{}\"}}",slash, dropbox_path));
+        let api_args = dbg!(format!("{{\"path\":\"{}{}\"}}", slash, dropbox_path));
 
         let request = self
             .client

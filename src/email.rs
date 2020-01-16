@@ -93,11 +93,11 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
     let attachments = attachments(&conventions, settings.width, &mail)?;
 
     Ok(PostInfo::new(
-        slug,
         title,
         sender,
         content,
         date,
+        conventions.permalink(),
         attachments,
         conventions.post_path(),
         conventions.post_filename(),

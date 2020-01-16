@@ -5,11 +5,11 @@ use std::path::PathBuf;
 
 #[derive(Debug)]
 pub struct PostInfo {
-    pub slug: String,
     pub title: String,
     pub author: String,
     pub content: Option<String>,
     pub date: DateTime<Utc>,
+    pub permalink: String,
     pub attachments: Vec<Image>,
     pub relative_path: String,
     pub filename: PathBuf,
@@ -33,21 +33,21 @@ pub struct Thumbnail {
 
 impl PostInfo {
     pub fn new(
-        slug: String,
         title: String,
         author: String,
         content: Option<String>,
         date: DateTime<Utc>,
+        permalink: String,
         attachments: Vec<Image>,
         relative_path: String,
         filename: PathBuf,
     ) -> PostInfo {
         PostInfo {
-            slug,
             title: title.trim().to_owned(),
             author: author.trim().to_owned(),
             content: content.map(|str| str.trim().to_owned()),
             date,
+            permalink,
             attachments,
             relative_path,
             filename,
@@ -87,11 +87,13 @@ title: |
     {}
 author: {}
 date: {}
+permalink: {}
 layout: post
 comments: true
 ---"#,
         post.title,
         post.author,
-        post.date.format("%Y-%m-%d %H:%M")
+        post.date.format("%Y-%m-%d %H:%M"),
+        post.permalink,
     )
 }

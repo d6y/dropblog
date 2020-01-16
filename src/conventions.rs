@@ -7,6 +7,7 @@ use std::path::PathBuf;
 pub struct FileConventions {
     post_media_dir: PathBuf,
     post_media_url: String,
+    permalink: String,
     stem: String,
     post_path: String,
     post_filename: PathBuf,
@@ -43,9 +44,13 @@ impl FileConventions {
 
         let post_path = format!("{}/{}.md", &posts_path, stem);
 
+        // The permalink is the slug, with no date information:
+        let permalink = format!("/{}", &slug);
+
         Ok(FileConventions {
             post_media_dir,
             post_media_url,
+            permalink,
             stem,
             post_path,
             post_filename,
@@ -58,6 +63,10 @@ impl FileConventions {
 
     pub fn post_path(&self) -> String {
         self.post_path.clone()
+    }
+
+    pub fn permalink(&self) -> String {
+        self.permalink.clone()
     }
 
     pub fn attachment_filename(&self, count: usize) -> PathBuf {
