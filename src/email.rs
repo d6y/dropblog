@@ -14,9 +14,11 @@ use super::signatureblock;
 use super::conventions;
 use conventions::FileConventions;
 
+use super::mishaps::Mishap;
+
 use super::image::thumbnail;
 
-pub fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
+pub fn fetch(settings: &Settings) -> Result<Option<String>, Mishap> {
     let tls = native_tls::TlsConnector::builder().build()?;
     let client = imap::connect(
         (&settings.hostname[..], settings.port),
@@ -48,7 +50,7 @@ pub fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
         .to_string();
 
     if settings.expunge {
-        imap_session.store(format!("{}", sequence_set), "+FLAGS (\\Seen \\Deleted)")?;
+        imap_session.store(sequence_set.to_string(), "+FLAGS (\\Seen \\Deleted)")?;
         let _msg_sequence_numbers = imap_session.expunge()?;
     }
 
@@ -57,27 +59,28 @@ pub fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
     Ok(Some(body))
 }
 
-fn to_generic_error<E: std::fmt::Debug>(err: E) -> MailParseError {
-    eprintln!("Failed to create media dir: {:?}", err);
-    MailParseError::Generic("Failed to create media dir")
+pub fn parse(mime_msg: &str) -> Result<ParsedMail, Mishap> {
+    let bytes = mime_msg.as_bytes();
+    let result = mailparse::parse_mail(bytes)?;
+    Ok(result)
 }
 
-pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailParseError> {
+pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap> {
     if settings.show_outline {
         // Debug output to show the structure of the MIME message
         outline(&mail);
     }
 
-    let sender: String = sender(&mail)?.unwrap_or(String::from("Someone"));
+    let sender: String = sender(&mail)?.unwrap_or_else(|| String::from("Someone"));
     let subject: Option<String> = mail.headers.get_first_value("Subject")?;
     let content: Option<String> = body(&mail)?.map(signatureblock::remove);
-    let date: DateTime<Utc> = date(&mail)?.unwrap_or(Utc::now());
+    let date: DateTime<Utc> = date(&mail)?.unwrap_or_else(Utc::now);
 
     // The blog post title will be the subject line, and if that's missing use the body text
     let title = subject
         .filter(|str| !str.is_empty())
-        .or(content.clone())
-        .unwrap_or(String::from("Untitled"));
+        .or_else(|| content.clone())
+        .unwrap_or_else(|| String::from("Untitled"));
 
     let slug = slug::slugify(&title);
 
@@ -87,8 +90,7 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
         &settings.posts_path,
         &date,
         &slug,
-    )
-    .map_err(to_generic_error)?;
+    )?;
 
     let attachments = attachments(&conventions, settings.width, &mail)?;
 
@@ -104,13 +106,13 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailPa
     ))
 }
 
-fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, MailParseError> {
+fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, Mishap> {
     let date_header: Option<String> = mail.headers.get_first_value("Date")?;
 
     let timestamp: Result<Vec<i64>, &str> = date_header.iter().map(|str| dateparse(&str)).collect();
 
     let utc: Option<DateTime<Utc>> = timestamp
-        .map_err(|e| MailParseError::Generic(e))?
+        .map_err(|e| Mishap::EmailField(e.to_string()))?
         .first()
         .map(|&seconds| Utc.timestamp_millis(1000 * seconds));
 
@@ -133,7 +135,7 @@ fn sender(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {
 
 fn body(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {
     if mail.ctype.mimetype == "text/plain" {
-        mail.get_body().map(|str| Some(str))
+        mail.get_body().map(Some)
     } else if mail.subparts.is_empty() {
         Ok(None)
     } else {
@@ -171,18 +173,16 @@ fn attachments(
     conventions: &FileConventions,
     width: u16,
     mail: &ParsedMail,
-) -> Result<Vec<Image>, MailParseError> {
+) -> Result<Vec<Image>, Mishap> {
     let mut images = Vec::new();
 
     for (count, part) in find_attachemnts(&mail).iter().enumerate() {
         let filename = conventions.attachment_filename(count);
         let bytes = part.get_body_raw()?;
-        let _file = save_raw_body(&filename, bytes)
-            .map_err(|_err| MailParseError::Generic(&"Failed to save file"))?;
+        let _file = save_raw_body(&filename, bytes)?;
 
         let thumb_filename = conventions.attachment_thumb_path(count);
-        let (width, height) = thumbnail(&filename, &thumb_filename, width)
-            .map_err(|_err| MailParseError::Generic(&"Failed to save thumbnail"))?;
+        let (width, height) = thumbnail(&filename, &thumb_filename, width)?;
 
         let thumbnail = Thumbnail {
             file: thumb_filename,
@@ -202,9 +202,9 @@ fn attachments(
     Ok(images)
 }
 
-fn save_raw_body(filename: &Path, bytes: Vec<u8>) -> Result<File, std::io::Error> {
+fn save_raw_body(filename: &Path, bytes: Vec<u8>) -> Result<File, Mishap> {
     let mut file = File::create(filename)?;
-    file.write(bytes.as_slice())?;
+    file.write_all(bytes.as_slice())?;
     Ok(file)
 }
 
@@ -219,7 +219,7 @@ fn describe_child(prefix: &str, mail: &ParsedMail) {
         &mail.ctype,
         &mail.subparts.len()
     );
-    let indent = String::from("--") + &prefix;
+    let indent = String::from("--") + prefix;
     for child in mail.subparts.iter() {
         describe_child(&indent, &child);
     }

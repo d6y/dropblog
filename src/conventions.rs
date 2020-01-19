@@ -16,8 +16,8 @@ pub struct FileConventions {
 impl FileConventions {
     pub fn new(
         output_dir: &PathBuf,
-        media_path: &String,
-        posts_path: &String,
+        media_path: &str,
+        posts_path: &str,
         date: &DateTime<Utc>,
         slug: &str,
     ) -> Result<FileConventions, Error> {
