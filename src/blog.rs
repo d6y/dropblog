@@ -1,3 +1,4 @@
+use super::mishaps::Mishap;
 use chrono::{DateTime, Utc};
 use std::fs::File;
 use std::io::Write;
@@ -55,7 +56,7 @@ impl PostInfo {
     }
 }
 
-pub fn write(post: &PostInfo) -> Result<&PostInfo, Box<dyn std::error::Error>> {
+pub fn write(post: &PostInfo) -> Result<&PostInfo, Mishap> {
     let markdown = File::create(&post.filename)?;
     write!(&markdown, "{}", post_meta(&post))?;
     write!(&markdown, "\n\n")?;

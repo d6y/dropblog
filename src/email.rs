@@ -14,9 +14,11 @@ use super::signatureblock;
 use super::conventions;
 use conventions::FileConventions;
 
+use super::mishaps::Mishap;
+
 use super::image::thumbnail;
 
-pub fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
+pub fn fetch(settings: &Settings) -> Result<Option<String>, Mishap> {
     let tls = native_tls::TlsConnector::builder().build()?;
     let client = imap::connect(
         (&settings.hostname[..], settings.port),
@@ -57,12 +59,18 @@ pub fn fetch(settings: &Settings) -> imap::error::Result<Option<String>> {
     Ok(Some(body))
 }
 
+pub fn parse<'a>(mime_msg: &'a String) -> Result<ParsedMail<'a>, Mishap> {
+    let bytes = mime_msg.as_bytes();
+    let result = mailparse::parse_mail(bytes)?;
+    Ok(result)
+}
+
 fn to_generic_error<E: std::fmt::Debug>(err: E) -> MailParseError {
     eprintln!("Failed to create media dir: {:?}", err);
     MailParseError::Generic("Failed to create media dir")
 }
 
-pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, MailParseError> {
+pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap> {
     if settings.show_outline {
         // Debug output to show the structure of the MIME message
         outline(&mail);

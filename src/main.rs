@@ -1,4 +1,3 @@
-use mailparse::*;
 use structopt::StructOpt;
 
 mod settings;
@@ -9,6 +8,7 @@ mod conventions;
 mod dropbox;
 mod email;
 mod image;
+mod mishaps;
 mod signatureblock;
 
 fn main() {
@@ -21,7 +21,7 @@ fn main() {
         Err(err) => stop(err),   // Failed accessing mail box
         Ok(None) => complete(0), // No messages to process
         Ok(Some(mime_message)) => {
-            match parse_mail(mime_message.as_bytes()).and_then(extract) {
+            match email::parse(&mime_message).and_then(extract) {
                 Err(err) => stop(err), // Message processing failed
                 Ok(info) => match blog::write(&info).and_then(upload) {
                     Err(err) => stop(err),
@@ -33,7 +33,7 @@ fn main() {
 }
 
 fn stop<E: std::fmt::Display>(err: E) -> ! {
-    eprintln!("{}", err);
+    eprintln!("Failed: {}", err);
     std::process::exit(1)
 }
 

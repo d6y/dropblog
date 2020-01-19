@@ -1,12 +1,11 @@
 use super::blog::PostInfo;
+use super::mishaps::Mishap;
 use super::settings::Settings;
 use reqwest;
-use std::error::Error;
 use std::fs::File;
-use std::io;
 use std::path::PathBuf;
 
-pub fn upload(settings: &Settings, post: &PostInfo) -> Result<(), Box<dyn Error>> {
+pub fn upload(settings: &Settings, post: &PostInfo) -> Result<(), Mishap> {
     let dropbox = Dropbox::new(&settings.dropbox_access_token);
     let _blog_response = dbg!(dropbox.upload(&post.filename, &post.relative_path)?);
 
@@ -33,7 +32,7 @@ impl Dropbox {
         }
     }
 
-    fn upload(&self, filename: &PathBuf, dropbox_path: &String) -> Result<(), Box<dyn Error>> {
+    fn upload(&self, filename: &PathBuf, dropbox_path: &String) -> Result<(), Mishap> {
         let file = File::open(filename)?;
 
         // E.g. { "path": "/media/2020/foo.jpg" }
@@ -55,10 +54,7 @@ impl Dropbox {
         let resp = request.send()?;
         match resp.status() {
             reqwest::StatusCode::OK => Ok(()),
-            code => Err(Box::new(io::Error::new(
-                io::ErrorKind::Other,
-                format!("Expected 200, not {} (api args: {})", code, &api_args),
-            ))),
+            code => Err(Mishap::UploadRejected(code)),
         }
     }
 }
