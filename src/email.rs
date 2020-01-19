@@ -50,7 +50,7 @@ pub fn fetch(settings: &Settings) -> Result<Option<String>, Mishap> {
         .to_string();
 
     if settings.expunge {
-        imap_session.store(format!("{}", sequence_set), "+FLAGS (\\Seen \\Deleted)")?;
+        imap_session.store(sequence_set.to_string(), "+FLAGS (\\Seen \\Deleted)")?;
         let _msg_sequence_numbers = imap_session.expunge()?;
     }
 
@@ -59,7 +59,7 @@ pub fn fetch(settings: &Settings) -> Result<Option<String>, Mishap> {
     Ok(Some(body))
 }
 
-pub fn parse<'a>(mime_msg: &'a String) -> Result<ParsedMail<'a>, Mishap> {
+pub fn parse(mime_msg: &str) -> Result<ParsedMail, Mishap> {
     let bytes = mime_msg.as_bytes();
     let result = mailparse::parse_mail(bytes)?;
     Ok(result)
@@ -71,16 +71,16 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap
         outline(&mail);
     }
 
-    let sender: String = sender(&mail)?.unwrap_or(String::from("Someone"));
+    let sender: String = sender(&mail)?.unwrap_or_else(|| String::from("Someone"));
     let subject: Option<String> = mail.headers.get_first_value("Subject")?;
     let content: Option<String> = body(&mail)?.map(signatureblock::remove);
-    let date: DateTime<Utc> = date(&mail)?.unwrap_or(Utc::now());
+    let date: DateTime<Utc> = date(&mail)?.unwrap_or_else(Utc::now);
 
     // The blog post title will be the subject line, and if that's missing use the body text
     let title = subject
         .filter(|str| !str.is_empty())
-        .or(content.clone())
-        .unwrap_or(String::from("Untitled"));
+        .or_else(|| content.clone())
+        .unwrap_or_else(|| String::from("Untitled"));
 
     let slug = slug::slugify(&title);
 
@@ -135,7 +135,7 @@ fn sender(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {
 
 fn body(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {
     if mail.ctype.mimetype == "text/plain" {
-        mail.get_body().map(|str| Some(str))
+        mail.get_body().map(Some)
     } else if mail.subparts.is_empty() {
         Ok(None)
     } else {
@@ -204,7 +204,7 @@ fn attachments(
 
 fn save_raw_body(filename: &Path, bytes: Vec<u8>) -> Result<File, Mishap> {
     let mut file = File::create(filename)?;
-    file.write(bytes.as_slice())?;
+    file.write_all(bytes.as_slice())?;
     Ok(file)
 }
 
@@ -219,7 +219,7 @@ fn describe_child(prefix: &str, mail: &ParsedMail) {
         &mail.ctype,
         &mail.subparts.len()
     );
-    let indent = String::from("--") + &prefix;
+    let indent = String::from("--") + prefix;
     for child in mail.subparts.iter() {
         describe_child(&indent, &child);
     }

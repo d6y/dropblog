@@ -25,18 +25,18 @@ struct Dropbox {
 }
 
 impl Dropbox {
-    fn new(token: &String) -> Dropbox {
+    fn new(token: &str) -> Dropbox {
         Dropbox {
-            token: token.clone(),
+            token: token.to_string(),
             client: reqwest::blocking::Client::new(),
         }
     }
 
-    fn upload(&self, filename: &PathBuf, dropbox_path: &String) -> Result<(), Mishap> {
+    fn upload(&self, filename: &PathBuf, dropbox_path: &str) -> Result<(), Mishap> {
         let file = File::open(filename)?;
 
         // E.g. { "path": "/media/2020/foo.jpg" }
-        let slash = if dropbox_path.starts_with("/") {
+        let slash = if dropbox_path.starts_with('/') {
             ""
         } else {
             "/"

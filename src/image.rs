@@ -21,7 +21,7 @@ pub fn thumbnail(source: &PathBuf, target: &PathBuf, width: u16) -> Result<(u16,
 
     let output_text = String::from_utf8_lossy(&identify_output.stdout);
 
-    let width_height: Vec<u16> = output_text.split("x").flat_map(|str| str.parse()).collect();
+    let width_height: Vec<u16> = output_text.split('x').flat_map(|str| str.parse()).collect();
 
     if width_height.len() != 2 {
         let msg = format!("Expected wxh, not: {:?}", output_text);
