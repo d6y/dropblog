@@ -65,11 +65,6 @@ pub fn parse<'a>(mime_msg: &'a String) -> Result<ParsedMail<'a>, Mishap> {
     Ok(result)
 }
 
-fn to_generic_error<E: std::fmt::Debug>(err: E) -> MailParseError {
-    eprintln!("Failed to create media dir: {:?}", err);
-    MailParseError::Generic("Failed to create media dir")
-}
-
 pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap> {
     if settings.show_outline {
         // Debug output to show the structure of the MIME message
@@ -95,8 +90,7 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap
         &settings.posts_path,
         &date,
         &slug,
-    )
-    .map_err(to_generic_error)?;
+    )?;
 
     let attachments = attachments(&conventions, settings.width, &mail)?;
 
@@ -112,13 +106,13 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap
     ))
 }
 
-fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, MailParseError> {
+fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, Mishap> {
     let date_header: Option<String> = mail.headers.get_first_value("Date")?;
 
     let timestamp: Result<Vec<i64>, &str> = date_header.iter().map(|str| dateparse(&str)).collect();
 
     let utc: Option<DateTime<Utc>> = timestamp
-        .map_err(|e| MailParseError::Generic(e))?
+        .map_err(|e| Mishap::EmailField(e.to_string()))?
         .first()
         .map(|&seconds| Utc.timestamp_millis(1000 * seconds));
 
@@ -179,18 +173,16 @@ fn attachments(
     conventions: &FileConventions,
     width: u16,
     mail: &ParsedMail,
-) -> Result<Vec<Image>, MailParseError> {
+) -> Result<Vec<Image>, Mishap> {
     let mut images = Vec::new();
 
     for (count, part) in find_attachemnts(&mail).iter().enumerate() {
         let filename = conventions.attachment_filename(count);
         let bytes = part.get_body_raw()?;
-        let _file = save_raw_body(&filename, bytes)
-            .map_err(|_err| MailParseError::Generic(&"Failed to save file"))?;
+        let _file = save_raw_body(&filename, bytes)?;
 
         let thumb_filename = conventions.attachment_thumb_path(count);
-        let (width, height) = thumbnail(&filename, &thumb_filename, width)
-            .map_err(|_err| MailParseError::Generic(&"Failed to save thumbnail"))?;
+        let (width, height) = thumbnail(&filename, &thumb_filename, width)?;
 
         let thumbnail = Thumbnail {
             file: thumb_filename,
@@ -210,7 +202,7 @@ fn attachments(
     Ok(images)
 }
 
-fn save_raw_body(filename: &Path, bytes: Vec<u8>) -> Result<File, std::io::Error> {
+fn save_raw_body(filename: &Path, bytes: Vec<u8>) -> Result<File, Mishap> {
     let mut file = File::create(filename)?;
     file.write(bytes.as_slice())?;
     Ok(file)

@@ -15,7 +15,10 @@ pub enum Mishap {
     Imap(#[from] imap::error::Error),
 
     #[error(transparent)]
-    GenericMailParse(#[from] mailparse::MailParseError),
+    Email(#[from] mailparse::MailParseError),
+
+    #[error("Bad email field: {0}")]
+    EmailField(String),
 
     #[error(transparent)]
     File(#[from] std::io::Error),
