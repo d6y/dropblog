@@ -1,4 +1,4 @@
-# Drop blog:  email-to-dropbox blog posting
+# Drop blog: email-to-dropbox blog posting
 
 - Connects to an IMAP account and reads an email
 - Extracts images and creates thumbnail version
@@ -15,15 +15,15 @@ mkdir -p $OUT_DIR/$MEDIA_PATH
 mkdir -p $OUT_DIR/$POSTS_PATH
 
 export DROPBOX_ACCESS_TOKEN=sup3rsekr3t
-export IMAP_PASSWORD=trustno1 
+export IMAP_PASSWORD=trustno1
 
 dropblog --user=hello@example.org -e
- ```
+```
 
- This will write files into `/tmp/blog/media` and `/tmp/blog/_post`
- and then try to upload them to Dropbox.
+This will write files into `/tmp/blog/media` and `/tmp/blog/_post`
+and then try to upload them to Dropbox.
 
- # Output
+# Output
 
 ```
 $ cat /tmp/blog/_posts/2020-01-15-colours.md
@@ -81,11 +81,11 @@ $ cargo build --release
 
 ## Dependencies
 
-[Imagemagik]: https://imagemagick.org/
-[Dropbox access token]: https://blogs.dropbox.com/developers/2014/05/generate-an-access-token-for-your-own-account/
+[imagemagik]: https://imagemagick.org/
+[dropbox access token]: https://blogs.dropbox.com/developers/2014/05/generate-an-access-token-for-your-own-account/
 
 - You need `convert` and `identify` from [Imagemagik] on your path.
-- You'll want a [Dropbox access token], and specifically an API token for an App Folder.
+- You'll want a [Dropbox access token], and specifically an API token for an App Folder (e.g., look for the 'Generate' button under 'Generated access token' on the App Folder page).
 
 ## Linux binary
 

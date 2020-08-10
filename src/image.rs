@@ -17,7 +17,7 @@ pub fn thumbnail(source: &PathBuf, target: &PathBuf, width: u16) -> Result<(u16,
         .arg("%wx%h")
         .arg(target)
         .output()
-        .expect("failed to indeify thumbnail");
+        .expect("failed to identify thumbnail");
 
     let output_text = String::from_utf8_lossy(&identify_output.stdout);
 

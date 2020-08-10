@@ -72,7 +72,7 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap
     }
 
     let sender: String = sender(&mail)?.unwrap_or_else(|| String::from("Someone"));
-    let subject: Option<String> = mail.headers.get_first_value("Subject")?;
+    let subject: Option<String> = mail.headers.get_first_value("Subject");
     let content: Option<String> = body(&mail)?.map(signatureblock::remove);
     let date: DateTime<Utc> = date(&mail)?.unwrap_or_else(Utc::now);
 
@@ -107,24 +107,21 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap
 }
 
 fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, Mishap> {
-    let date_header: Option<String> = mail.headers.get_first_value("Date")?;
-
-    let timestamp: Result<Vec<i64>, &str> = date_header.iter().map(|str| dateparse(&str)).collect();
-
-    let utc: Option<DateTime<Utc>> = timestamp
-        .map_err(|e| Mishap::EmailField(e.to_string()))?
-        .first()
-        .map(|&seconds| Utc.timestamp_millis(1000 * seconds));
-
-    Ok(utc)
+    match mail.headers.get_first_value("Date") {
+        None => Ok(None),
+        Some(str) => dateparse(&str)
+            .map_err(|e| Mishap::EmailField(e.to_string()))
+            .map(|seconds| Utc.timestamp_millis(1000 as i64 * seconds))
+            .map(|utc| Some(utc)),
+    }
 }
 
 fn sender(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {
-    let sender_text: Option<String> = mail.headers.get_first_value("From")?;
+    let sender_text: Option<String> = mail.headers.get_first_value("From");
     match sender_text {
         None => Ok(None),
         Some(str) => match addrparse(&str) {
-            Err(err) => Err(MailParseError::Generic(&err)),
+            Err(err) => Err(err),
             Ok(addrs) if addrs.is_empty() => Ok(None),
             Ok(addrs) => Ok(addrs
                 .extract_single_info()
