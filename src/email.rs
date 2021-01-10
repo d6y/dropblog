@@ -192,7 +192,7 @@ fn attachments(
             file: filename,
             relative_path: conventions.attachment_url(count),
             thumbnail,
-            mimetype: mail.ctype.mimetype.clone(),
+            mimetype: mail.ctype.mimetype.clone(), //TODO: should be part.ctype
         });
     }
 

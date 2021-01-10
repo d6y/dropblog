@@ -20,9 +20,21 @@ pub struct Settings {
     #[structopt(long, env = "IMAP_PASSWORD", hide_env_values = true)]
     pub password: String,
 
-    /// Dropbox access token
+    /// Dropbox refresh token
     #[structopt(long, env, hide_env_values = true)]
-    pub dropbox_access_token: String,
+    pub dropbox_refresh_token: Option<String>,
+
+    /// Dropbox code (supplied by yser, used once to fetch a refresh token)
+    #[structopt(long, env, hide_env_values = true)]
+    pub dropbox_code: Option<String>,
+
+    /// Dropbox app key (also called client ID)
+    #[structopt(long, env)]
+    pub dropbox_app_key: String,
+
+    /// Dropbox app secret (also called client secret)
+    #[structopt(long, env, hide_env_values = true)]
+    pub dropbox_app_secret: String,
 
     /// Existing directory for writing content
     #[structopt(long, env = "OUT_DIR")]
