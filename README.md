@@ -132,7 +132,7 @@ The sequence of commands (once you have an app key and secret) is:
 
 [imagemagik]: https://imagemagick.org/
 
-- You need `convert` and `identify` from [Imagemagik] on your path.
+- You need `convert`, `mogrify` and `identify` from [Imagemagik] on your path.
 
 
 # Build notes

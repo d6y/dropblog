@@ -16,7 +16,7 @@ use conventions::FileConventions;
 
 use super::mishaps::Mishap;
 
-use super::image::thumbnail;
+use super::image::{strip_metadata, thumbnail};
 
 pub fn fetch(settings: &Settings) -> Result<Option<String>, Mishap> {
     let tls = native_tls::TlsConnector::builder().build()?;
@@ -177,6 +177,9 @@ fn attachments(
         let filename = conventions.attachment_filename(count);
         let bytes = part.get_body_raw()?;
         let _file = save_raw_body(&filename, bytes)?;
+
+        // Strip metadata from image before processing
+        let _exit_status = strip_metadata(&filename)?;
 
         let thumb_filename = conventions.attachment_thumb_path(count);
         let (width, height) = thumbnail(&filename, &thumb_filename, width)?;

@@ -1,6 +1,13 @@
-use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
 use std::process::Command;
+use std::{
+    io::{Error, ErrorKind},
+    process::ExitStatus,
+};
+
+pub fn strip_metadata(source: &PathBuf) -> Result<ExitStatus, Error> {
+    Command::new("mogrify").arg("-strip").arg(&source).status()
+}
 
 pub fn thumbnail(source: &PathBuf, target: &PathBuf, width: u16) -> Result<(u16, u16), Error> {
     let _convert_status = Command::new("convert")
@@ -23,12 +30,12 @@ pub fn thumbnail(source: &PathBuf, target: &PathBuf, width: u16) -> Result<(u16,
 
     let width_height: Vec<u16> = output_text.split('x').flat_map(|str| str.parse()).collect();
 
-    if width_height.len() != 2 {
-        let msg = format!("Expected wxh, not: {:?}", output_text);
-        // eprintln!("{}", &msg);
-        let cause = Error::new(ErrorKind::InvalidData, msg);
-        Err(cause)
-    } else {
-        Ok((width_height[0], width_height[1]))
+    match width_height.as_slice() {
+        [w, h] => Ok((*w, *h)),
+        _ => {
+            let msg = format!("Expected wxh, not: {:?}", output_text);
+            let cause = Error::new(ErrorKind::InvalidData, msg);
+            Err(cause)
+        }
     }
 }
