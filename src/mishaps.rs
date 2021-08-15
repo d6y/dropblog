@@ -1,11 +1,5 @@
 use thiserror::Error;
 
-use http;
-use imap;
-use mailparse;
-use native_tls;
-use reqwest;
-
 #[derive(Error, Debug)]
 pub enum Mishap {
     #[error(transparent)]

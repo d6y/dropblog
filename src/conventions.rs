@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use std::fs;
 use std::io::Error;
 use std::path::PathBuf;
+use std::path::Path;
 
 #[derive(Debug)]
 pub struct FileConventions {
@@ -15,14 +16,14 @@ pub struct FileConventions {
 
 impl FileConventions {
     pub fn new(
-        output_dir: &PathBuf,
+        output_dir: &Path,
         media_path: &str,
         posts_path: &str,
         date: &DateTime<Utc>,
         slug: &str,
     ) -> Result<FileConventions, Error> {
         // Media (i.e., images) will be in seperate yearly subdirectories:
-        let mut post_media_dir = output_dir.clone();
+        let mut post_media_dir = output_dir.to_path_buf();
         post_media_dir.push(&media_path);
         let year = date.format("%Y").to_string();
         post_media_dir.push(&year);
@@ -38,7 +39,7 @@ impl FileConventions {
         let stem = format!("{}-{}", date.format("%Y-%m-%d"), slug);
 
         // The blog post is a single filename:
-        let mut post_filename = output_dir.clone();
+        let mut post_filename = output_dir.to_path_buf();
         post_filename.push(&posts_path);
         post_filename.push(format!("{}.md", stem));
 

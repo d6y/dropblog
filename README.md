@@ -90,6 +90,8 @@ OPTIONS:
 
 You need to create a Dropbox app for yourself, and note the app key and app secret (also called client id and client secret).
 
+[console]: https://www.dropbox.com/developers/apps
+
 ## Dropbox offline OAuth dance
 
 You need to generate a long-lived refresh token. This is described in "Implement refresh tokens" at <https://dropbox.tech/developers/migrating-app-permissions-and-access-tokens>.

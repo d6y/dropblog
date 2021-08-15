@@ -1,10 +1,8 @@
 use super::blog::PostInfo;
 use super::mishaps::Mishap;
 use super::settings::Settings;
-use reqwest;
-use serde;
 use std::fs::File;
-use std::path::PathBuf;
+use std::path::Path;
 
 pub fn show_auth_url(app_key: &str) -> String {
     format!("https://www.dropbox.com/oauth2/authorize?token_access_type=offline&client_id={}&response_type=code",
@@ -99,12 +97,12 @@ impl Dropbox {
         .map(|ar| ar.access_token)?;
 
         Ok(Dropbox {
-            token: token.to_string(),
+            token,
             client: reqwest::blocking::Client::new(),
         })
     }
 
-    fn upload(&self, filename: &PathBuf, dropbox_path: &str) -> Result<(), Mishap> {
+    fn upload(&self, filename: &Path, dropbox_path: &str) -> Result<(), Mishap> {
         let file = File::open(filename)?;
 
         // E.g. { "path": "/media/2020/foo.jpg" }

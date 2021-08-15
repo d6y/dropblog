@@ -1,7 +1,5 @@
 use chrono::{DateTime, TimeZone, Utc};
-use imap;
 use mailparse::*;
-use native_tls;
 
 use std::fs::File;
 use std::io::Write;
@@ -111,8 +109,8 @@ fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, Mishap> {
         None => Ok(None),
         Some(str) => dateparse(&str)
             .map_err(|e| Mishap::EmailField(e.to_string()))
-            .map(|seconds| Utc.timestamp_millis(1000 as i64 * seconds))
-            .map(|utc| Some(utc)),
+            .map(|seconds| Utc.timestamp_millis(1000_i64 * seconds))
+            .map(Some),
     }
 }
 
@@ -137,7 +135,7 @@ fn body(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {
         Ok(None)
     } else {
         let parts: Result<Vec<Option<String>>, MailParseError> =
-            mail.subparts.iter().map(|m| body(&m)).collect();
+            mail.subparts.iter().map(|m| body(m)).collect();
 
         let valid_parts: Result<Vec<String>, MailParseError> =
             parts.map(|os| os.into_iter().flatten().collect());
@@ -173,7 +171,7 @@ fn attachments(
 ) -> Result<Vec<Image>, Mishap> {
     let mut images = Vec::new();
 
-    for (count, part) in find_attachemnts(&mail).iter().enumerate() {
+    for (count, part) in find_attachemnts(mail).iter().enumerate() {
         let filename = conventions.attachment_filename(count);
         let bytes = part.get_body_raw()?;
         let _file = save_raw_body(&filename, bytes)?;
@@ -209,7 +207,7 @@ fn save_raw_body(filename: &Path, bytes: Vec<u8>) -> Result<File, Mishap> {
 }
 
 fn outline(mail: &ParsedMail) {
-    describe_child("+", &mail);
+    describe_child("+", mail);
 }
 
 fn describe_child(prefix: &str, mail: &ParsedMail) {
@@ -221,6 +219,6 @@ fn describe_child(prefix: &str, mail: &ParsedMail) {
     );
     let indent = String::from("--") + prefix;
     for child in mail.subparts.iter() {
-        describe_child(&indent, &child);
+        describe_child(&indent, child);
     }
 }

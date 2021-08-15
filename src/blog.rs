@@ -58,7 +58,7 @@ impl PostInfo {
 
 pub fn write(post: &PostInfo) -> Result<&PostInfo, Mishap> {
     let markdown = File::create(&post.filename)?;
-    write!(&markdown, "{}", post_meta(&post))?;
+    write!(&markdown, "{}", post_meta(post))?;
     write!(&markdown, "\n\n")?;
 
     match &post.content {

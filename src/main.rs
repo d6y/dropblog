@@ -38,10 +38,10 @@ fn show_token(code: &str, key: &str, secret: &str) {
 }
 
 fn dropblog(refresh: &str, settings: &Settings) {
-    let extract = |msg| email::extract(&settings, msg);
-    let upload = |post| dropbox::upload(refresh, &settings, post);
+    let extract = |msg| email::extract(settings, msg);
+    let upload = |post| dropbox::upload(refresh, settings, post);
 
-    match email::fetch(&settings) {
+    match email::fetch(settings) {
         Err(err) => stop(err),   // Failed accessing mail box
         Ok(None) => complete(0), // No messages to process
         Ok(Some(mime_message)) => {
