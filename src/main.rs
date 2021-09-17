@@ -33,7 +33,7 @@ fn main() {
 fn show_token(code: &str, key: &str, secret: &str) {
     match dropbox::get_refresh_token(code, key, secret) {
         Ok(refresh) => println!("{}", refresh),
-        Err(err) => stop(err),
+        Err(err) => stop("token refresh", err),
     }
 }
 
@@ -42,13 +42,13 @@ fn dropblog(refresh: &str, settings: &Settings) {
     let upload = |post| dropbox::upload(refresh, settings, post);
 
     match email::fetch(settings) {
-        Err(err) => stop(err),   // Failed accessing mail box
+        Err(err) => stop("email fetch", err),   // Failed accessing mail box
         Ok(None) => complete(0), // No messages to process
         Ok(Some(mime_message)) => {
             match email::parse(&mime_message).and_then(extract) {
-                Err(err) => stop(err), // Message processing failed
+                Err(err) => stop("email parse and extract", err), // Message processing failed
                 Ok(info) => match blog::write(&info).and_then(upload) {
-                    Err(err) => stop(err),
+                    Err(err) => stop("writing and uploading", err),
                     Ok(_) => complete(1),
                 },
             }
@@ -56,8 +56,8 @@ fn dropblog(refresh: &str, settings: &Settings) {
     }
 }
 
-fn stop<E: std::fmt::Display>(err: E) -> ! {
-    eprintln!("Failed: {}", err);
+fn stop<E: std::fmt::Display>(context: &str, err: E) -> ! {
+    eprintln!("Failed: {} at {}", err, context);
     std::process::exit(1)
 }
 
