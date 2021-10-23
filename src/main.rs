@@ -42,8 +42,8 @@ fn dropblog(refresh: &str, settings: &Settings) {
     let upload = |post| dropbox::upload(refresh, settings, post);
 
     match email::fetch(settings) {
-        Err(err) => stop("email fetch", err),   // Failed accessing mail box
-        Ok(None) => complete(0), // No messages to process
+        Err(err) => stop("email fetch", err), // Failed accessing mail box
+        Ok(None) => complete(0),              // No messages to process
         Ok(Some(mime_message)) => {
             match email::parse(&mime_message).and_then(extract) {
                 Err(err) => stop("email parse and extract", err), // Message processing failed

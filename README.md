@@ -38,8 +38,8 @@ comments: true
 permalink: /colours
 ---
 
-<a href="/media/2020/2020-01-15-colours-0.jpg">
-<img src="/media/2020/2020-01-15-colours-0-thumb.jpg" width="500" height="375">
+<a href="{{ site.url }}/media/2020/2020-01-15-colours-0.jpg">
+<img src="{{ site.url }}/media/2020/2020-01-15-colours-0-thumb.jpg" width="500" height="375">
 </a>
 ```
 

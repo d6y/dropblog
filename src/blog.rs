@@ -56,6 +56,8 @@ impl PostInfo {
     }
 }
 
+const JEKYL_SITE_URL: &str = "{{ site.url }}";
+
 pub fn write(post: &PostInfo) -> Result<&PostInfo, Mishap> {
     let markdown = File::create(&post.filename)?;
     write!(&markdown, "{}", post_meta(post))?;
@@ -67,18 +69,23 @@ pub fn write(post: &PostInfo) -> Result<&PostInfo, Mishap> {
     };
 
     for image in post.attachments.iter() {
-        write!(
-            &markdown,
-            r#"<a href="{}"><img src="{}" width="{}" height="{}"></a>"#,
-            image.relative_path,
-            image.thumbnail.relative_path,
-            image.thumbnail.width,
-            image.thumbnail.height
-        )?;
+        write!(&markdown, "{}", image_to_markdown(image))?;
         write!(&markdown, "\n\n")?;
     }
 
     Ok(post)
+}
+
+fn image_to_markdown(image: &Image) -> String {
+    format!(
+        r#"<a href="{}{}"><img src="{}{}" width="{}" height="{}"></a>"#,
+        &JEKYL_SITE_URL,
+        image.relative_path,
+        &JEKYL_SITE_URL,
+        image.thumbnail.relative_path,
+        image.thumbnail.width,
+        image.thumbnail.height
+    )
 }
 
 fn post_meta(post: &PostInfo) -> String {
@@ -97,4 +104,28 @@ comments: true
         post.date.format("%Y-%m-%d %H:%M"),
         post.permalink,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_image_markdown() {
+        let img = Image {
+            file: PathBuf::new(),
+            relative_path: "/foo.jpg".to_string(),
+            mimetype: "image/jpg".to_string(),
+            thumbnail: Thumbnail {
+                file: PathBuf::new(),
+                relative_path: "/foo_thumb.jpg".to_string(),
+                width: 640,
+                height: 320,
+            },
+        };
+
+        let markdown = r#"<a href="{{ site.url }}/foo.jpg"><img src="{{ site.url }}/foo_thumb.jpg" width="640" height="320"></a>"#;
+
+        assert_eq!(markdown, image_to_markdown(&img));
+    }
 }

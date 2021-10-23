@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 use std::fs;
 use std::io::Error;
-use std::path::PathBuf;
 use std::path::Path;
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub struct FileConventions {
