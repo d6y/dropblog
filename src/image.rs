@@ -1,8 +1,6 @@
+use std::io::{Error, ErrorKind};
 use std::path::Path;
 use std::process::Command;
-use std::{
-    io::{Error, ErrorKind},
-};
 
 pub fn thumbnail(source: &Path, target: &Path, width: u16) -> Result<(u16, u16), Error> {
     let _convert_status = Command::new("convert")

@@ -135,7 +135,7 @@ fn body(mail: &ParsedMail) -> Result<Option<String>, MailParseError> {
         Ok(None)
     } else {
         let parts: Result<Vec<Option<String>>, MailParseError> =
-            mail.subparts.iter().map(|m| body(m)).collect();
+            mail.subparts.iter().map(body).collect();
 
         let valid_parts: Result<Vec<String>, MailParseError> =
             parts.map(|os| os.into_iter().flatten().collect());
@@ -159,7 +159,7 @@ fn find_attachemnts<'a>(mail: &'a ParsedMail<'a>) -> Vec<&'a ParsedMail<'a>> {
     let head: Vec<&ParsedMail> =
         to_vec(Some(mail).filter(|m| m.ctype.mimetype.starts_with("image")));
 
-    let tail = mail.subparts.iter().map(|m| find_attachemnts(m)).flatten();
+    let tail = mail.subparts.iter().map(find_attachemnts).flatten();
 
     head.into_iter().chain(tail).collect()
 }
