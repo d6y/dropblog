@@ -2,12 +2,7 @@ use std::path::Path;
 use std::process::Command;
 use std::{
     io::{Error, ErrorKind},
-    process::ExitStatus,
 };
-
-pub fn strip_metadata(source: &Path) -> Result<ExitStatus, Error> {
-    Command::new("mogrify").arg("-strip").arg(&source).status()
-}
 
 pub fn thumbnail(source: &Path, target: &Path, width: u16) -> Result<(u16, u16), Error> {
     let _convert_status = Command::new("convert")
