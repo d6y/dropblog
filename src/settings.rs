@@ -20,7 +20,7 @@ pub struct Settings {
     #[structopt(long, env = "IMAP_PASSWORD", hide_env_values = true)]
     pub password: String,
 
-    // The mailbox to IDLE on
+    // The mailbox to read from
     #[structopt(short, long, default_value = "INBOX")]
     pub mailbox: String,
 
