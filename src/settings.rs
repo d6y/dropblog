@@ -20,6 +20,10 @@ pub struct Settings {
     #[structopt(long, env = "IMAP_PASSWORD", hide_env_values = true)]
     pub password: String,
 
+    // The mailbox to IDLE on
+    #[structopt(short, long, default_value = "INBOX")]
+    pub mailbox: String,
+
     /// Dropbox refresh token
     #[structopt(long, env, hide_env_values = true)]
     pub dropbox_refresh_token: Option<String>,
