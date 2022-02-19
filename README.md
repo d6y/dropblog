@@ -47,7 +47,7 @@ permalink: /colours
 
 ```
 % ./target/release/dropblog --help
-dropblog 2.0.0
+dropblog 2.0.2
 
 USAGE:
     dropblog [FLAGS] [OPTIONS] --dropbox-app-key <dropbox-app-key> --dropbox-app-secret <dropbox-app-secret> --media-path <media-path> --out-dir <out-dir> --password <password> --posts-path <posts-path> --user <user>
@@ -67,6 +67,7 @@ OPTIONS:
             Email address (or user account) to check on the IMAP server [env: IMAP_USER=]
 
         --password <password>                              Password for authentication [env: IMAP_PASSWORD]
+    -m, --mailbox <mailbox>                                 [default: INBOX]
         --dropbox-refresh-token <dropbox-refresh-token>    Dropbox refresh token [env: DROPBOX_REFRESH_TOKEN]
         --dropbox-code <dropbox-code>
             Dropbox code (supplied by yser, used once to fetch a refresh token) [env: DROPBOX_CODE]
