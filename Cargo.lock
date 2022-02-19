@@ -165,7 +165,6 @@ name = "dropblog"
 version = "2.0.1"
 dependencies = [
  "chrono",
- "clap",
  "http",
  "imap",
  "mailparse",

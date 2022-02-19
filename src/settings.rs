@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(global_settings(&[clap::AppSettings::DeriveDisplayOrder]))]
+#[structopt(global_settings(&[structopt::clap::AppSettings::DeriveDisplayOrder]))]
 pub struct Settings {
     /// IMAP hostname to connect to
     #[structopt(long, default_value = "imap.gmail.com", env = "IMAP_HOSTNAME")]
