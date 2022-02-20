@@ -1,6 +1,6 @@
 use chrono::{DateTime, TimeZone, Utc};
-use mailparse::*;
 use log::debug;
+use mailparse::*;
 
 use std::fs::File;
 use std::io::Write;
@@ -92,7 +92,7 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap
     )?;
 
     let attachments = attachments(&conventions, settings.width, &mail)?;
-    
+
     let info = PostInfo::new(
         title.to_string(),
         sender,
