@@ -1,5 +1,6 @@
 use chrono::{DateTime, TimeZone, Utc};
 use mailparse::*;
+use log::debug;
 
 use std::fs::File;
 use std::io::Write;
@@ -75,7 +76,7 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap
     let date: DateTime<Utc> = date(&mail)?.unwrap_or_else(Utc::now);
 
     // The blog post title will be the subject line, and if that's missing use the body text
-    let title = subject
+    let title = &subject
         .filter(|str| !str.is_empty())
         .or_else(|| content.clone())
         .unwrap_or_else(|| String::from("Untitled"));
@@ -91,9 +92,9 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap
     )?;
 
     let attachments = attachments(&conventions, settings.width, &mail)?;
-
-    Ok(PostInfo::new(
-        title,
+    
+    let info = PostInfo::new(
+        title.to_string(),
         sender,
         content,
         date,
@@ -101,7 +102,11 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap
         attachments,
         conventions.post_path(),
         conventions.post_filename(),
-    ))
+    );
+
+    debug!("{:#?}", &info);
+
+    Ok(info)
 }
 
 fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, Mishap> {

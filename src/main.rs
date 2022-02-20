@@ -14,6 +14,8 @@ mod signatureblock;
 fn main() {
     let settings = Settings::from_args();
 
+    env_logger::init();
+
     if let Some(refresh) = &settings.dropbox_refresh_token {
         // If we have a refresh token, we're good to run
         dropblog(refresh, &settings);
