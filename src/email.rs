@@ -49,7 +49,7 @@ pub fn fetch(settings: &Settings) -> Result<Option<String>, Mishap> {
         .to_string();
 
     if settings.expunge {
-        imap_session.store(sequence_set.to_string(), "+FLAGS (\\Seen \\Deleted)")?;
+        imap_session.store(sequence_set, "+FLAGS (\\Seen \\Deleted)")?;
         let _msg_sequence_numbers = imap_session.expunge()?;
     }
 
@@ -164,7 +164,7 @@ fn find_attachemnts<'a>(mail: &'a ParsedMail<'a>) -> Vec<&'a ParsedMail<'a>> {
     let head: Vec<&ParsedMail> =
         to_vec(Some(mail).filter(|m| m.ctype.mimetype.starts_with("image")));
 
-    let tail = mail.subparts.iter().map(find_attachemnts).flatten();
+    let tail = mail.subparts.iter().flat_map(find_attachemnts);
 
     head.into_iter().chain(tail).collect()
 }
