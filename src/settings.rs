@@ -28,7 +28,7 @@ pub struct Settings {
     #[structopt(long, env, hide_env_values = true)]
     pub dropbox_refresh_token: Option<String>,
 
-    /// Dropbox code (supplied by yser, used once to fetch a refresh token)
+    /// Dropbox code (supplied by user, used once to fetch a refresh token)
     #[structopt(long, env, hide_env_values = true)]
     pub dropbox_code: Option<String>,
 

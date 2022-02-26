@@ -70,7 +70,7 @@ OPTIONS:
     -m, --mailbox <mailbox>                                 [default: INBOX]
         --dropbox-refresh-token <dropbox-refresh-token>    Dropbox refresh token [env: DROPBOX_REFRESH_TOKEN]
         --dropbox-code <dropbox-code>
-            Dropbox code (supplied by yser, used once to fetch a refresh token) [env: DROPBOX_CODE]
+            Dropbox code (supplied by user, used once to fetch a refresh token) [env: DROPBOX_CODE]
 
         --dropbox-app-key <dropbox-app-key>
             Dropbox app key (also called client ID) [env: DROPBOX_APP_KEY=]
@@ -114,7 +114,7 @@ The sequence of commands (once you have an app key and secret) is:
     export DROPBOX_APP_SECRET=???
     ```
 
-2. Run `cargo run` to get the URL for authenication. Follow this URL in a browser, and note the code Dropbox gives you.
+2. Run `cargo run` to get the URL for authentication. Follow this URL in a browser, and note the code Dropbox gives you.
 
 3. Run again supplying the code Dropbox gave you:
 
@@ -142,7 +142,7 @@ The sequence of commands (once you have an app key and secret) is:
 
 ## Linux binary
 
-As we use rustls, the following is the fastest way to build for Liux on macOS:
+As we use rustls, the following is the fastest way to build for Linux on macOS:
 
 ```
 cat .envrc
