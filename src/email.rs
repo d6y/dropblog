@@ -18,12 +18,7 @@ use super::mishaps::Mishap;
 use super::image::thumbnail;
 
 pub fn fetch(settings: &Settings) -> Result<Option<String>, Mishap> {
-    let tls = native_tls::TlsConnector::builder().build()?;
-    let client = imap::connect(
-        (&settings.hostname[..], settings.port),
-        &settings.hostname,
-        &tls,
-    )?;
+    let client = imap::ClientBuilder::new(&settings.hostname, settings.port).rustls()?;
 
     let mut imap_session = client
         .login(&settings.user, &settings.password)

@@ -142,7 +142,23 @@ The sequence of commands (once you have an app key and secret) is:
 
 ## Linux binary
 
-From MacOS:
+As we use rustls, the following is the fastest way to build for Liux on macOS:
+
+```
+cat .envrc
+export CC_x86_64_unknown_linux_gnu=x86_64-unknown-linux-gnu-gcc
+export CXX_x86_64_unknown_linux_gnu=x86_64-unknown-linux-gnu-g++
+export AR_x86_64_unknown_linux_gnu=x86_64-unknown-linux-gnu-ar
+export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=x86_64-unknown-linux-gnu-gcc
+
+cargo build --target x86_64-unknown-linux-gnu --release
+```
+
+The binary will be in `target/x86_64-unknown-linux-gnu/release/`.
+
+## Alternative Linux binary 
+
+As a backup the following is also possible:
 
 ```
 docker pull clux/muslrust

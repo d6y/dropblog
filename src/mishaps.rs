@@ -3,9 +3,6 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum Mishap {
     #[error(transparent)]
-    Network(#[from] native_tls::Error),
-
-    #[error(transparent)]
     Imap(#[from] imap::error::Error),
 
     #[error(transparent)]
