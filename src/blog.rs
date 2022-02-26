@@ -33,6 +33,7 @@ pub struct Thumbnail {
 }
 
 impl PostInfo {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         title: String,
         author: String,
@@ -58,9 +59,9 @@ impl PostInfo {
 
 const JEKYL_SITE_URL: &str = "{{ site.url }}";
 
-pub fn write(post: &PostInfo) -> Result<&PostInfo, Mishap> {
+pub fn write(post: PostInfo) -> Result<PostInfo, Mishap> {
     let markdown = File::create(&post.filename)?;
-    write!(&markdown, "{}", post_meta(post))?;
+    write!(&markdown, "{}", post_meta(&post))?;
     write!(&markdown, "\n\n")?;
 
     match &post.content {

@@ -1,6 +1,6 @@
 [package]
 name = "dropblog"
-version = "2.0.2"
+version = "2.0.3"
 authors = ["Richard Dallaway <richard@dallaway.com>"]
 edition = "2021"
 

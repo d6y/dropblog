@@ -1,9 +1,10 @@
 use chrono::{DateTime, TimeZone, Utc};
+use imap::Session;
 use log::debug;
 use mailparse::*;
 
 use std::fs::File;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::Path;
 
 use super::blog::{Image, PostInfo, Thumbnail};
@@ -17,15 +18,10 @@ use super::mishaps::Mishap;
 
 use super::image::thumbnail;
 
-pub fn fetch(settings: &Settings) -> Result<Option<String>, Mishap> {
-    let client = imap::ClientBuilder::new(&settings.hostname, settings.port).rustls()?;
-
-    let mut imap_session = client
-        .login(&settings.user, &settings.password)
-        .map_err(|(err, _client)| err)?;
-
-    imap_session.select(&settings.mailbox)?;
-
+pub fn fetch<T: Read + Write>(
+    settings: &Settings,
+    imap_session: &mut Session<T>,
+) -> Result<Option<String>, Mishap> {
     // fetch message number 1 in this mailbox, along with its RFC822 field.
     // RFC 822 dictates the format of the body of e-mails
 
@@ -47,8 +43,6 @@ pub fn fetch(settings: &Settings) -> Result<Option<String>, Mishap> {
         imap_session.store(sequence_set, "+FLAGS (\\Seen \\Deleted)")?;
         let _msg_sequence_numbers = imap_session.expunge()?;
     }
-
-    imap_session.logout()?;
 
     Ok(Some(body))
 }

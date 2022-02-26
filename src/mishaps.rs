@@ -1,6 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum Mishap {
     #[error(transparent)]
     Imap(#[from] imap::error::Error),

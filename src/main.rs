@@ -18,7 +18,10 @@ fn main() {
 
     if let Some(refresh) = &settings.dropbox_refresh_token {
         // If we have a refresh token, we're good to run
-        dropblog(refresh, &settings);
+        match dropblog(refresh, &settings) {
+            Ok(count) => complete(count),
+            Err(err) => stop("dropblog processing", err),
+        }
     } else if let Some(code) = &settings.dropbox_code {
         // If dropbox code is supplied, use it to fetch and print a refresh token
         show_token(
@@ -39,23 +42,29 @@ fn show_token(code: &str, key: &str, secret: &str) {
     }
 }
 
-fn dropblog(refresh: &str, settings: &Settings) {
+fn dropblog(refresh: &str, settings: &Settings) -> Result<usize, mishaps::Mishap> {
     let extract = |msg| email::extract(settings, msg);
-    let upload = |post| dropbox::upload(refresh, settings, post);
+    let upload = |post| dropbox::upload(refresh, settings, &post);
 
-    match email::fetch(settings) {
-        Err(err) => stop("email fetch", err), // Failed accessing mail box
-        Ok(None) => complete(0),              // No messages to process
-        Ok(Some(mime_message)) => {
-            match email::parse(&mime_message).and_then(extract) {
-                Err(err) => stop("email parse and extract", err), // Message processing failed
-                Ok(info) => match blog::write(&info).and_then(upload) {
-                    Err(err) => stop("writing and uploading", err),
-                    Ok(_) => complete(1),
-                },
-            }
-        }
-    }
+    let client = imap::ClientBuilder::new(&settings.hostname, settings.port).rustls()?;
+
+    let mut imap_session = client
+        .login(&settings.user, &settings.password)
+        .map_err(|(err, _client)| err)?;
+
+    imap_session.select(&settings.mailbox)?;
+
+    let result = match email::fetch(settings, &mut imap_session)? {
+        None => Ok(0), // No messages to process
+        Some(mime_message) => email::parse(&mime_message)
+            .and_then(extract)
+            .and_then(blog::write)
+            .and_then(upload),
+    };
+
+    imap_session.logout()?;
+
+    result
 }
 
 fn stop<E: std::fmt::Display>(context: &str, err: E) -> ! {

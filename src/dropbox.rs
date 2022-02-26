@@ -13,7 +13,7 @@ pub fn get_refresh_token(code: &str, app_key: &str, app_secret: &str) -> Result<
     Dropbox::code_for_token(code, app_key, app_secret).map(|ar| ar.refresh_token)
 }
 
-pub fn upload(refresh_token: &str, settings: &Settings, post: &PostInfo) -> Result<(), Mishap> {
+pub fn upload(refresh_token: &str, settings: &Settings, post: &PostInfo) -> Result<usize, Mishap> {
     let dropbox = Dropbox::from_refresh_token(refresh_token, settings)?;
     let _blog_response = dropbox.upload(&post.filename, &post.relative_path)?;
 
@@ -24,7 +24,7 @@ pub fn upload(refresh_token: &str, settings: &Settings, post: &PostInfo) -> Resu
         let _thumb_resp = dropbox.upload(&thumb.file, &thumb.relative_path)?;
     }
 
-    Ok(())
+    Ok(1)
 }
 
 struct Dropbox {
