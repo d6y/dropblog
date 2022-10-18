@@ -15,13 +15,13 @@ pub fn get_refresh_token(code: &str, app_key: &str, app_secret: &str) -> Result<
 
 pub fn upload(refresh_token: &str, settings: &Settings, post: &PostInfo) -> Result<usize, Mishap> {
     let dropbox = Dropbox::from_refresh_token(refresh_token, settings)?;
-    let _blog_response = dropbox.upload(&post.filename, &post.relative_path)?;
+    dropbox.upload(&post.filename, &post.relative_path)?;
 
     for image in post.attachments.iter() {
-        let _img_resp = dropbox.upload(&image.file, &image.relative_path)?;
+        dropbox.upload(&image.file, &image.relative_path)?;
 
         let thumb = &image.thumbnail;
-        let _thumb_resp = dropbox.upload(&thumb.file, &thumb.relative_path)?;
+        dropbox.upload(&thumb.file, &thumb.relative_path)?;
     }
 
     Ok(1)
