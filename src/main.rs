@@ -1,5 +1,4 @@
-use structopt::StructOpt;
-
+use clap::Parser;
 mod settings;
 use settings::Settings;
 
@@ -12,7 +11,7 @@ mod mishaps;
 mod signatureblock;
 
 fn main() {
-    let settings = Settings::from_args();
+    let settings = Settings::parse();
 
     env_logger::init();
 
