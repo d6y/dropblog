@@ -32,3 +32,9 @@ pub fn thumbnail(source: &Path, target: &Path, width: u16) -> Result<(u16, u16),
         }
     }
 }
+
+pub fn imagemagic_installed() -> bool {
+    let convert_status = Command::new("convert").arg("-version").output();
+
+    convert_status.is_ok()
+}

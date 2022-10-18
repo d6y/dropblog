@@ -140,6 +140,13 @@ The sequence of commands (once you have an app key and secret) is:
 
 # Build notes
 
+## Docker build
+
+```
+docker build -t dropblog .
+docker run -it --rm --name running-dropblog dropblog
+```
+
 ## Linux binary
 
 As we use rustls, the following is the fastest way to build for Linux on macOS:

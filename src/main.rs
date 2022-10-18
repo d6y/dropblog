@@ -15,6 +15,9 @@ fn main() {
 
     env_logger::init();
 
+    ensure_out_dir_exists(&settings);
+    ensure_imagemagik_installed();
+
     if let Some(refresh) = &settings.dropbox_refresh_token {
         // If we have a refresh token, we're good to run
         match dropblog(refresh, &settings) {
@@ -32,6 +35,29 @@ fn main() {
         // Without a code or refresh token, show the URL for where a user should go to get a code
         println!("{}", dropbox::show_auth_url(&settings.dropbox_app_key));
     }
+}
+
+fn ensure_imagemagik_installed() {
+    if !image::imagemagic_installed() {
+        panic!("Did not find ImageMagik");
+    }
+}
+
+fn ensure_out_dir_exists(settings: &Settings) {
+    if !settings.out_dir.exists() {
+        std::fs::create_dir_all(&settings.out_dir).expect("creating out dir")
+    };
+
+    let media_dir = settings.out_dir.join(&settings.media_path);
+    let posts_dir = settings.out_dir.join(&settings.posts_path);
+
+    if !media_dir.exists() {
+        std::fs::create_dir_all(media_dir).expect("creating media dir")
+    };
+
+    if !posts_dir.exists() {
+        std::fs::create_dir_all(posts_dir).expect("creating media dir")
+    };
 }
 
 fn show_token(code: &str, key: &str, secret: &str) {
