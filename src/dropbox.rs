@@ -3,6 +3,7 @@ use super::mishaps::Mishap;
 use super::settings::Settings;
 use std::fs::File;
 use std::path::Path;
+use std::time::Duration;
 
 pub fn show_auth_url(app_key: &str) -> String {
     format!("https://www.dropbox.com/oauth2/authorize?token_access_type=offline&client_id={}&response_type=code",
@@ -42,6 +43,8 @@ struct AccessResponse {
 }
 
 impl Dropbox {
+    const TIMEOUT: Duration = Duration::from_secs(60);
+
     // Convert a manually requested code into a refresh token (which we can then reuse).
     fn code_for_token(code: &str, app_key: &str, app_secret: &str) -> Result<AuthResponse, Mishap> {
         let client = reqwest::blocking::Client::new();
@@ -50,6 +53,7 @@ impl Dropbox {
             .post("https://api.dropbox.com/oauth2/token")
             .basic_auth(app_key, Some(app_secret))
             .query(&query)
+            .timeout(Dropbox::TIMEOUT)
             .send()?;
 
         let body = response.text()?;
@@ -77,6 +81,7 @@ impl Dropbox {
             .post("https://api.dropbox.com/oauth2/token")
             .basic_auth(app_key, Some(app_secret))
             .query(&query)
+            .timeout(Dropbox::TIMEOUT)
             .send()?;
 
         let body = response.text()?;
@@ -120,6 +125,7 @@ impl Dropbox {
             .bearer_auth(&self.token)
             .header("Content-Type", "application/octet-stream")
             .header("Dropbox-API-Arg", &api_args)
+            .timeout(Dropbox::TIMEOUT)
             .body(file);
 
         let resp = request.send()?;
