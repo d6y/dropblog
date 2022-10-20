@@ -19,7 +19,7 @@ pub struct Settings {
     pub password: String,
 
     // The mailbox to read from
-    #[arg(short, long, default_value = "INBOX")]
+    #[arg(short, long, env = "MAILBOX", default_value = "INBOX")]
     pub mailbox: String,
 
     /// Dropbox refresh token
