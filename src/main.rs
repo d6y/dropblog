@@ -1,6 +1,10 @@
+use std::path::Path;
+
 use clap::Parser;
 mod settings;
+use log::debug;
 use settings::Settings;
+use tempfile::TempDir;
 
 mod blog;
 mod conventions;
@@ -14,13 +18,15 @@ fn main() {
     let settings = Settings::parse();
 
     env_logger::init();
-
-    ensure_out_dir_exists(&settings);
     ensure_imagemagik_installed();
+
+    let temp_dir = TempDir::new().expect("creating temporary directory");
+    debug!("Writing to: {:?}", temp_dir.path());
+    ensure_out_dir_exists(&settings, temp_dir.path());
 
     if let Some(refresh) = &settings.dropbox_refresh_token {
         // If we have a refresh token, we're good to run
-        match dropblog(refresh, &settings) {
+        match dropblog(refresh, &settings, temp_dir.path()) {
             Ok(count) => complete(count),
             Err(err) => stop("dropblog processing", err),
         }
@@ -43,20 +49,16 @@ fn ensure_imagemagik_installed() {
     }
 }
 
-fn ensure_out_dir_exists(settings: &Settings) {
-    if !settings.out_dir.exists() {
-        std::fs::create_dir_all(&settings.out_dir).expect("creating out dir")
-    };
-
-    let media_dir = settings.out_dir.join(&settings.media_path);
-    let posts_dir = settings.out_dir.join(&settings.posts_path);
+fn ensure_out_dir_exists(settings: &Settings, out_dir: &Path) {
+    let media_dir = out_dir.join(&settings.media_path);
+    let posts_dir = out_dir.join(&settings.posts_path);
 
     if !media_dir.exists() {
         std::fs::create_dir_all(media_dir).expect("creating media dir")
     };
 
     if !posts_dir.exists() {
-        std::fs::create_dir_all(posts_dir).expect("creating media dir")
+        std::fs::create_dir_all(posts_dir).expect("creating post dir")
     };
 }
 
@@ -67,8 +69,8 @@ fn show_token(code: &str, key: &str, secret: &str) {
     }
 }
 
-fn dropblog(refresh: &str, settings: &Settings) -> Result<usize, mishaps::Mishap> {
-    let extract = |msg| email::extract(settings, msg);
+fn dropblog(refresh: &str, settings: &Settings, out_dir: &Path) -> Result<usize, mishaps::Mishap> {
+    let extract = |msg| email::extract(settings, out_dir, msg);
     let upload = |post| dropbox::upload(refresh, settings, &post);
 
     let client = imap::ClientBuilder::new(&settings.hostname, settings.port).rustls()?;

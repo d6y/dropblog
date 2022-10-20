@@ -53,7 +53,7 @@ pub fn parse(mime_msg: &str) -> Result<ParsedMail, Mishap> {
     Ok(result)
 }
 
-pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap> {
+pub fn extract(settings: &Settings, out_dir: &Path, mail: ParsedMail) -> Result<PostInfo, Mishap> {
     if settings.show_outline {
         // Debug output to show the structure of the MIME message
         outline(&mail);
@@ -73,7 +73,7 @@ pub fn extract(settings: &Settings, mail: ParsedMail) -> Result<PostInfo, Mishap
     let slug = slug::slugify(&title);
 
     let conventions = FileConventions::new(
-        &settings.out_dir,
+        out_dir,
         &settings.media_path,
         &settings.posts_path,
         &date,

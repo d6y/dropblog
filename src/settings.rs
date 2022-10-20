@@ -1,5 +1,4 @@
 use clap::Parser;
-use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
 pub struct Settings {
@@ -39,10 +38,6 @@ pub struct Settings {
     #[arg(long, env, hide_env_values = true)]
     pub dropbox_app_secret: String,
 
-    /// Existing directory for writing content
-    #[arg(long, env = "OUT_DIR")]
-    pub out_dir: PathBuf,
-
     /// Path into media relative to OUT_DIR
     #[arg(long, env = "MEDIA_PATH")]
     pub media_path: String,
@@ -52,11 +47,11 @@ pub struct Settings {
     pub posts_path: String,
 
     /// Thumbnail width
-    #[arg(short, long, default_value = "500")]
+    #[arg(short, long, default_value = "500", env = "IMAGE_WIDTH")]
     pub width: u16,
 
     /// Archive the email after processing
-    #[arg(short, long)]
+    #[arg(short, long, env = "EXPURGE")]
     pub expunge: bool,
 
     /// Outline the structure of the email as additional output
