@@ -1,4 +1,4 @@
-FROM rust:1.64.0-bullseye as cargo
+FROM rust:1.77.0-bullseye as cargo
 WORKDIR /usr/src/app
 COPY . .
 RUN cargo install --path .
