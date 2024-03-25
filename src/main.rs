@@ -73,7 +73,7 @@ fn dropblog(refresh: &str, settings: &Settings, out_dir: &Path) -> Result<usize,
     let extract = |msg| email::extract(settings, out_dir, msg);
     let upload = |post| dropbox::upload(refresh, settings, &post);
 
-    let client = imap::ClientBuilder::new(&settings.hostname, settings.port).rustls()?;
+    let client = imap::ClientBuilder::new(&settings.hostname, settings.port).connect()?;
 
     let mut imap_session = client
         .login(&settings.user, &settings.password)

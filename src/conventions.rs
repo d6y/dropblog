@@ -24,7 +24,7 @@ impl FileConventions {
     ) -> Result<FileConventions, Error> {
         // Media (i.e., images) will be in seperate yearly subdirectories:
         let mut post_media_dir = output_dir.to_path_buf();
-        post_media_dir.push(&media_path);
+        post_media_dir.push(media_path);
         let year = date.format("%Y").to_string();
         post_media_dir.push(&year);
 
@@ -40,7 +40,7 @@ impl FileConventions {
 
         // The blog post is a single filename:
         let mut post_filename = output_dir.to_path_buf();
-        post_filename.push(&posts_path);
+        post_filename.push(posts_path);
         post_filename.push(format!("{}.md", stem));
 
         let post_path = format!("{}/{}.md", &posts_path, stem);

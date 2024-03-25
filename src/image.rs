@@ -4,7 +4,7 @@ use std::process::Command;
 
 pub fn thumbnail(source: &Path, target: &Path, width: u16) -> Result<(u16, u16), Error> {
     let _convert_status = Command::new("convert")
-        .arg(&source)
+        .arg(source)
         .arg("-resize")
         .arg(width.to_string())
         .arg("-auto-orient")

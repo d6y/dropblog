@@ -70,7 +70,7 @@ pub fn extract(settings: &Settings, out_dir: &Path, mail: ParsedMail) -> Result<
         .or_else(|| content.clone())
         .unwrap_or_else(|| String::from("Untitled"));
 
-    let slug = slug::slugify(&title);
+    let slug = slug::slugify(title);
 
     let conventions = FileConventions::new(
         out_dir,
@@ -103,7 +103,13 @@ fn date(mail: &ParsedMail) -> Result<Option<DateTime<Utc>>, Mishap> {
         None => Ok(None),
         Some(str) => dateparse(&str)
             .map_err(|e| Mishap::EmailField(e.to_string()))
-            .map(|seconds| Utc.timestamp_millis(1000_i64 * seconds))
+            .and_then(|seconds| {
+                Utc.timestamp_millis_opt(1000_i64 * seconds)
+                    .single()
+                    .ok_or(Mishap::EmailField(
+                        "Invalid date when treated as UTC ms".to_owned(),
+                    ))
+            })
             .map(Some),
     }
 }
