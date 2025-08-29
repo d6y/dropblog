@@ -19,7 +19,7 @@ pub enum Mishap {
     DropboxConnection(#[from] reqwest::Error),
 
     #[error("Upload failed: {0}")]
-    UploadRejected(http::status::StatusCode),
+    UploadRejected(reqwest::StatusCode),
 
     #[error("Json parsing failed, got: {0}. Reason: {1}")]
     JsonContent(String, String),
