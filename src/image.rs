@@ -3,7 +3,7 @@ use std::path::Path;
 use std::process::Command;
 
 pub fn thumbnail(source: &Path, target: &Path, width: u16) -> Result<(u16, u16), Error> {
-    let _convert_status = Command::new("convert")
+    let _convert_status = Command::new("magick")
         .arg(source)
         .arg("-resize")
         .arg(width.to_string())
@@ -34,7 +34,7 @@ pub fn thumbnail(source: &Path, target: &Path, width: u16) -> Result<(u16, u16),
 }
 
 pub fn imagemagic_installed() -> bool {
-    let convert_status = Command::new("convert").arg("-version").output();
+    let convert_status = Command::new("magick").arg("-version").output();
 
     convert_status.is_ok()
 }
