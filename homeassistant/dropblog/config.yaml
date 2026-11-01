@@ -1,0 +1,38 @@
+name: Dropblog
+version: "2.0.6"
+slug: dropblog
+description: Converts an email into a blog post on Dropbox
+url: https://github.com/d6y/dropblog
+arch:
+  - aarch64
+  - amd64
+startup: application
+boot: auto
+stdin: true
+options:
+  imap_hostname: imap.gmail.com
+  imap_port: 993
+  media_path: media
+  posts_path: _posts
+  image_width: 500
+  expunge: true
+  timezone: Europe/London
+  log_level: info
+  blogs: []
+schema:
+  imap_hostname: str
+  imap_port: port
+  media_path: str
+  posts_path: str
+  image_width: int
+  expunge: bool
+  timezone: str
+  log_level: str
+  blogs:
+    - name: str
+      imap_user: str
+      imap_password: password
+      mailbox: str
+      dropbox_app_key: str
+      dropbox_app_secret: password
+      dropbox_refresh_token: password
