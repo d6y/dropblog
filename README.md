@@ -177,3 +177,101 @@ The binary will be:
 ```
 target/x86_64-unknown-linux-musl/release/dropblog
 ```
+
+# Running as a Home Assistant app
+
+The `homeassistant/` folder contains a local app for Home Assistant.
+
+The app stays running. Each time an automation sends it a blog name (one line of input), it runs `dropblog` once for that blog.
+Each run processes one email.
+Several blogs (each with its own mailbox and Dropbox app) can share the one app.
+
+Install steps from macOS:
+
+## 1. Expose the Home Assistant `addons` folder to your Mac
+
+If you have already done this for another app (e.g., dogpost), skip to step 2.
+
+1. In Home Assistant go to _Settings > Apps_, and install **Samba share**.
+2. On the app's _Configuration_ tab set a username and password, save, then **Start** it.
+3. On the Mac, in Finder choose _Go > Connect to Server_ (⌘K) and enter `smb://homeassistant.local/addons` (or use IP address if that doesn't work).
+   Log in with the Samba username and password. The share mounts at `/Volumes/addons`.
+4. Check you can access the addons from your terminal: `ls /Volumes/addons`. If you can't check _System Settings > Privacy & Security > Files and Folders_ and for your terminal turn on "Network Volumes".
+
+## 2. Copy the app across
+
+From the root of this repository:
+
+```
+./homeassistant/install.sh
+```
+
+This copies the app files plus `Cargo.toml`, `Cargo.lock` and `src/` into `/Volumes/addons/dropblog`.
+Pass a different folder as an argument if the share is mounted elsewhere.
+
+## 3. Install the app
+
+In Home Assistant go to _Settings > Apps_ and click **Install App**. Select `dropblog` and then press **Install**.
+
+The Pi will now compile the code and this will take a while.
+
+## 4. Configure
+
+Each blog needs a Dropbox refresh token.
+If you don't have one, get it on your Mac by following [Dropbox offline OAuth dance](#dropbox-offline-oauth-dance) above.
+
+On the app's **Configuration** tab set the shared settings (`media_path`, `posts_path`, `expunge`, etc.).
+`log_level` is passed through as `RUST_LOG`, so it can be a filter such as `DEBUG,rustls=off`.
+
+Add one entry to `blogs` per blog. In YAML mode (the tab's "⋮" menu, _Edit in YAML_) that looks like:
+
+```yaml
+blogs:
+  - name: richard
+    imap_user: someone@example.com
+    imap_password: ...
+    mailbox: richard
+    dropbox_app_key: ...
+    dropbox_app_secret: ...
+    dropbox_refresh_token: ...
+```
+
+Save, then **Start** the app. The **Log** tab should show `dropblog: waiting for triggers`.
+
+## 5. Trigger it from an automation
+
+Use the `hassio.addon_stdin` action (the app's id is `local_dropblog`), with the blog's `name` as the input.
+For example:
+
+```yaml
+alias: Dropblog on new email
+triggers:
+  - trigger: event
+    event_type: blog_email_tagged
+    event_data:
+      folder: richard
+actions:
+  - action: hassio.addon_stdin
+    data:
+      addon: local_dropblog
+      input: richard
+mode: queued
+```
+
+To test by hand, go to _Developer tools > Actions_, run `hassio.addon_stdin` with the data above, and watch the app's **Log** tab.
+An input that doesn't match a blog name is logged as `dropblog: no blog named '...'`.
+
+## Updating
+
+After changing the code, run `./homeassistant/install.sh` again, press the "refresh" icon on the Apps page in HA, then select **Update** on the app's page.
+
+After changing `homeassistant/dropblog/config.yaml` (e.g., the settings), Rebuild is not enough:
+
+1. Increase `version` in `config.yaml`.
+2. Run `./homeassistant/install.sh`.
+3. In the Home Assistant _Terminal_:
+
+   ```
+   ha store reload
+   ha apps update local_dropblog
+   ```
